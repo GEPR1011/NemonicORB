@@ -7,6 +7,7 @@
 [![Server](https://img.shields.io/badge/servidor-NemonicRP-purple?style=for-the-badge)](.)
 [![API](https://img.shields.io/badge/Paper%20%2F%20Spigot-1.20+-green?style=for-the-badge&logo=java)](.)
 [![MMOItems](https://img.shields.io/badge/MMOItems-compatível-blue?style=for-the-badge)](.)
+[![MMOCore](https://img.shields.io/badge/MMOCore-compatível-blue?style=for-the-badge)](.)
 
 *Inspirado em Path of Exile 2 · Suporte a Itens Vanilla e MMOItems · Temporada 1*
 
@@ -32,7 +33,7 @@ Jogadores constroem builds únicas combinando modificadores de categorias distin
 - **Sistema de Polimento** que amplifica stats em até +47% (com consequências permanentes)
 - **3 Mesas de Classe** com mecânicas exclusivas: Alquimista, Ferreiro e Mercador
 - **Dano e defesa elemental** em 6 elementos: Fogo, Gelo, Raio, Terra, Água e Vento
-- **Valores escaláveis por nível de classe** — quanto mais forte o jogador, melhores os mods
+- **Valores escaláveis por nível de classe** via **MMOCore** — quanto mais forte o jogador, melhores os mods
 - **Drop de equipamentos não identificados** por mobs, com raridades e bônus por classe
 - **Craft com aleatoriedade** — itens craftados na bancada já saem com bônus e encantamentos
 - Totalmente configurável via YAML — sem necessidade de recompilar
