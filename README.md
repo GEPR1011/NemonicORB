@@ -9,7 +9,7 @@
 [![MMOItems](https://img.shields.io/badge/MMOItems-compatível-blue?style=for-the-badge)](.)
 [![MMOCore](https://img.shields.io/badge/MMOCore-compatível-blue?style=for-the-badge)](.)
 
-*Inspirado em Path of Exile 2 · Suporte a Itens Vanilla e MMOItems · Temporada 1*
+*Inspirado em Path of Exile 2 · Suporte a MMOCore e MMOItems · Temporada 1*
 
 **[📖 Wiki Completa](../../wiki) · [📩 Contato para aquisição](#-contato)**
 
