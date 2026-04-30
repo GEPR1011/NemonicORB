@@ -1,0 +1,23 @@
+name: NemonicOrbPlugin
+version: '2.5.0'
+main: com.nemonicorp.orbs.NemonicOrbPlugin
+api-version: '1.21'
+description: Sistema de Orbs v2.1 (PoE2-style) para NemonicRP - Suporte a itens vanilla
+authors: [NemonicRP]
+depend: [MMOItems, MythicLib]
+softdepend: [MMOCore, ProtocolLib]
+
+commands:
+  nemonicorb:
+    description: Comandos administrativos do sistema de Orbs v2
+    usage: /<command> <acao> <jogador> [args]
+    permission: nemonicorb.admin
+    aliases: [norb]
+
+permissions:
+  nemonicorb.admin:
+    description: Permite usar comandos administrativos de orbs
+    default: op
+  nemonicorb.use:
+    description: Permite usar orbs no gameplay
+    default: true

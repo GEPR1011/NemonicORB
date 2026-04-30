@@ -1,0 +1,514 @@
+# ============================================
+# NemonicOrbPlugin v2 - Configuracao
+# Sistema de Orbs estilo PoE2 para NemonicRP
+# ============================================
+
+# NAO remova esta linha — usado para detectar versao
+config-version: 9
+
+# Debug mode — mostra logs detalhados no console
+debug: false
+
+# Auditoria de modificadores/status
+audit:
+  auto-log: true
+  verbose: true
+
+# HUD de vida com cap visual (4 linhas = 80 HP)
+hud-health-cap:
+  enabled: false
+  visible-max-health: 80.0
+  update-ticks: 20
+  actionbar-indicator: true
+
+# Sistema novo: vida base 20/20 + excedente em absorcao (coracao dourado)
+absorption-health:
+  enabled: false
+  max-absorption: 200.0
+  recharge-delay-seconds: 10
+  consume-heal-window-seconds: 5
+  recalc-interval-ticks: 20
+  debug: false
+
+# Armadura efetiva (mitigacao custom alem do vanilla)
+effective-armor:
+  enabled: true
+  base-scale: 1.2
+  armor-scale: 1.15
+  toughness-scale: 0.95
+  defense-scale: 1.3
+  max-reduction: 0.88
+  pvp-multiplier: 1.35
+  pve-multiplier: 1.05
+  magic-multiplier: 1.0
+
+# Cooldown entre uso de orbs (milissegundos)
+cooldown-ms: 5000
+
+# IDs dos orbs (MMOITEMS_ITEM_ID no consumable.yml)
+orb-ids:
+  - PERGAMINHO_DE_IDENTIFICACAO
+  - OLEO_DE_POLIMENTO
+  - PEDRA_DE_ENCANTAMENTO
+  - PEDRA_DE_REFORCO
+  - RUNA_NOBRE
+  - PEDRA_DE_REFINAMENTO
+  - RUNA_DE_PODER
+  - MOEDA_DA_SORTE
+  - PEDRA_CORROSIVA
+
+# ── Sistema de Tiers ──
+# Tier 0 = Comum (0 mods), Tier 1 = Magico (max 2), Tier 2 = Raro (max 6), Tier 3 = Unico (fixo)
+tiers:
+  0:
+    name: 'Comum'
+    color: '&7'
+    max-mods: 0
+  1:
+    name: 'Magico'
+    color: '&9'
+    max-mods: 2
+  2:
+    name: 'Raro'
+    color: '&e'
+    max-mods: 6
+  3:
+    name: 'Unico'
+    color: '&b'
+    max-mods: 6
+
+# ── Polimento (Oleo de Polimento) ──
+max-polish: 5
+polish-quality-boost: 8.0
+
+# ── Nivel de Craft (MMOCore) ──
+# Ao craftar, o nivel de classe do jogador influencia os valores dos modificadores.
+# Fator de sorte: chance de craftar com nivel efetivo mais alto.
+craft-luck:
+  chance: 5.0               # % chance de ativar sorte ao craftar
+  bonus-levels: 10           # Bonus base de niveis ao ter sorte
+  max-bonus: 30              # Bonus maximo possivel
+
+# ── Moeda da Sorte - chances (%) ──
+chance-orb:
+  magic: 75
+  rare: 23
+  unique: 2
+
+# ── Encantamentos ao Craftar (Prefixos) ──
+enchant-on-craft:
+  max: 2                  # Maximo de encantamentos por item
+  two-chance: 15.0        # 15% chance de receber 2 encantamentos
+  one-chance: 50.0        # 50% chance de receber 1 encantamento (35% = 0)
+  level-chances:          # % chance para cada nivel (restante = nivel 1)
+    5: 0.01
+    4: 0.1
+    3: 1.0
+    2: 10.0
+
+# ── Atributos ao Craftar (Sufixos) ──
+suffix-on-craft:
+  max: 2                  # Maximo de atributos bonus por item
+  two-chance: 15.0        # 15% chance de receber 2 sufixos
+  one-chance: 50.0        # 50% chance de receber 1 sufixo (35% = 0)
+  level-scaling: 0.005    # Multiplicador por nivel do jogador (+0.5% por nivel)
+
+# Escala global do nivel para calculo de mods das orbs (0.0-1.0)
+# Ex: 0.45 = um item nivel 30 escala como ~14.05 para os valores dos mods
+orb-level-scaling-ratio: 0.45
+
+# ── Bloqueio de Forja/Encantamento ──
+blocking:
+  enchanting-table: true      # Desativar mesa de encantamento globalmente
+  crafter: true               # Bloquear craft, colocacao, abertura e funcionamento da Mesa de Trabalho Automatica
+  anvil-orb-items: true       # Bloquear itens com orbs na bigorna
+  grindstone-orb-items: true  # Bloquear itens com orbs na rebarbadora
+  smithing-orb-items: true    # Bloquear itens com orbs na mesa de ferraria
+
+# ── Efeitos Elementais no Hit ──
+elemental-effects:
+  enabled: true
+  cooldown-ms: 2000           # Cooldown por elemento por jogador (ms)
+  lightning:
+    visual-lightning: true    # Efeito visual de raio (sem dano)
+  water:
+    knockback-multiplier: 0.05
+  wind:
+    launch-multiplier: 0.03
+
+# ── Mesa de Transmutacao Alquimica ──
+transmutation:
+  enabled: true
+  class-name: 'Alquimista'           # Classe MMOCore necessaria
+  min-level: 5                        # Nivel minimo para abrir a mesa (fabricacao)
+  transmute-level: 35                 # Nivel minimo para transmutar equipamentos
+  cooldown-seconds: 120               # Cooldown entre transmutacoes (2 minutos)
+  craft-cooldown-seconds: 10          # Cooldown entre fabricacoes de orbs
+  orb-yield-multiplier: 0.55          # Multiplicador global da quantidade de orbs geradas
+  scan-radius: 20                     # Raio de scan para bonus ambientais
+  scan-cache-seconds: 60              # Tempo de cache do scan ambiental
+  # Bonus de estantes
+  bookshelf:
+    bonus-per-block: 0.01             # +1% por estante
+    max-bonus: 0.40                   # Max +40%
+  # Bonus de jogadores proximos
+  nearby-players:
+    bonus-per-player: 0.05            # +5% por jogador
+    max-bonus: 0.25                   # Max +25%
+  # Mensagens
+  messages:
+    level-too-low: '&c[NemonicOrb] Voce precisa de nivel %level% na classe Alquimista para transmutar!'
+    cooldown: '&c[NemonicOrb] Aguarde %seconds%s antes de transmutar novamente!'
+    invalid-item: '&c[NemonicOrb] Este item nao pode ser transmutado! Apenas equipamentos com orbs ou MMOItems.'
+    transmute-success: '&a[NemonicOrb] Transmutacao concluida! %count% orb(s) gerada(s).'
+
+# ── Mesa do Ferreiro (Forja Skill-Based) ──
+blacksmith:
+  enabled: true
+  class-name: 'Ferreiro'
+  min-level: 5
+  cooldown-seconds: 30
+  scan-radius: 20
+  scan-cache-seconds: 60
+  # Blocos de bonus ambiental: {bonus por bloco, max blocos}
+  # Eficiencia = 100% + soma dos bonus
+  # REGRA: Maior eficiencia = maior dificuldade + melhor resultado
+  heating:
+    tick-interval: 2
+    heat-per-click: 8.0
+    decay-per-tick: 0.5
+    ideal-center: 70.0
+    ideal-zone-base: 20.0
+    ideal-zone-min: 8.0
+  shaping:
+    hits-required: 4
+    cursor-speed-base: 0.04
+    cursor-speed-max: 0.07
+    green-zone-base: 0.30
+    green-zone-min: 0.12
+    combo-threshold: 3
+    combo-bonus: 5.0
+  cooling:
+    tick-interval: 2
+    decrement-base: 0.008
+    fluctuation-amplitude-base: 0.0
+    fluctuation-amplitude-max: 0.006
+    ideal-center: 0.35
+    ideal-zone-base: 0.15
+    ideal-zone-min: 0.06
+  refining:
+    clicks-required: 2
+    timing-window-ticks: 16
+    timing-gap-ticks-base: 40
+    timing-gap-ticks-min: 20
+    penalty-removal-chance: 0.8
+    quality-bonus: 3.0
+  # Breakpoints de eficiencia (percentual)
+  breakpoints:
+    1: 130
+    2: 170
+    3: 210
+    4: 250
+    5: 290
+  # Qualidade resultado
+  quality:
+    masterwork: 90
+    excellent: 75
+    good: 50
+    poor: 25
+  # Falha critica: chance base (so ativa em breakpoint 4+)
+  critical-failure-chance: 0.01
+  # Custo de material para forjar
+  fuel:
+    material: COAL            # COAL ou CHARCOAL (aceita ambos)
+    amount: 10                # Fallback se amount-by-tier nao existir
+    amount-by-tier:           # Custo por raridade do item
+      0: 10                   # Comum
+      1: 12                   # Magico
+      2: 14                   # Raro
+      3: 14                   # Unico
+  # Cap de melhoria nos stats do item
+  unique-min-level: 35          # Nivel minimo para forjar itens Unicos (Tier 3)
+  # Fabricacao de Oleo de Polimento
+  oil-crafting:
+    fuel-cost: 10              # Carvao necessario
+    gold-nuggets-required: 9   # Pepitas de ouro necessarias
+  # Cap de melhoria nos stats do item
+  improvement:
+    base-cap: 8.0             # % base de melhoria (nerfado)
+    per-level: 0.05           # +% por nivel do Ferreiro (nerfado)
+    breakpoint-bonus:
+      0: 0.0
+      1: 0.5
+      2: 1.0
+      3: 1.8
+      4: 2.6
+      5: 3.5
+  # Reparo de equipamentos (custo em materiais, nao XP)
+  repair:
+    max-material-cost: 8      # Maximo de materiais para reparar 100% de dano
+    level-discount: 0.005     # -0.5% de desconto por nivel do Ferreiro
+    min-multiplier: 0.50      # Desconto maximo = 50% do custo
+  # Mensagens
+  messages:
+    level-too-low: '&c[Forja] Voce precisa de nivel %level% na classe Ferreiro!'
+    cooldown: '&c[Forja] Aguarde %seconds%s antes de forjar novamente!'
+    forging-start: '&6[Forja] A forja comeca! Aqueca o metal...'
+    stage-advance: '&e[Forja] Proximo estagio: %stage%'
+    forging-complete: '&a[Forja] Forja concluida! Qualidade: %quality%'
+    forging-failed: '&c[Forja] O item quebrou durante a forja!'
+    not-forgeable: '&c[Forja] Este item nao pode ser forjado!'
+    cancel: '&c[Forja] Forja cancelada.'
+    no-fuel: '&c[Forja] Voce precisa de %amount%x Carvao para forjar!'
+    repair-success: '&a[Forja] Item reparado com sucesso! (-%amount%x %material%)'
+    repair-no-materials: '&c[Forja] Voce precisa de %amount%x %material% para reparar!'
+    repair-not-damaged: '&c[Forja] Este item nao esta danificado!'
+
+# ── Mesa do Mercador (Comercio Skill-Based) ──
+merchant:
+  enabled: true
+  class-name: 'Mercador'
+  min-level: 5
+  enchant-min-level: 35
+  avaliacao-cooldown-seconds: 15
+  avaliacao-xp-cost: 2
+  craft-cooldown-seconds: 30
+  enchant-cooldown-seconds: 30
+  scan-radius: 20
+  mesa-detection-radius: 4       # Raio para detectar mesas de outras classes (Alquimista/Ferreiro)
+  scan-cache-seconds: 60
+  # Breakpoints de eficiencia (percentual)
+  breakpoints:
+    1: 130
+    2: 170
+    3: 210
+    4: 250
+    5: 290
+  # Encantamento com Livro
+  enchant:
+    base-chance: 60.0            # % chance base de sucesso
+    efficiency-factor: 0.2       # +% por ponto de eficiencia
+    level-factor: 0.15           # +% por nivel do Mercador
+    bp3-bonus: 10.0              # +% no BP3
+    bp4-preserve-chance: 15.0    # % chance de preservar livro no BP4
+    ferreiro-bonus: 5.0          # +% se Ferreiro proximo (hidden)
+    critical-fail-chance: 10.0   # % falha critica se <110% eficiencia
+    critical-fail-durability: 0.25  # % durabilidade perdida na falha critica
+    xp-per-enchant-level: 3      # Niveis XP por nivel de encantamento
+  # Craft de Pergaminho de Identificacao
+  pergaminho-craft:
+    paper: 4
+    glow-ink-sac: 2
+    lapis-lazuli: 1
+    base-output: 2
+  # Craft de Pocao de Retorno
+  pocao-craft:
+    cooldown-seconds: 60
+    ender-pearls: 4
+    redstone-dust: 8
+    compass: 1
+  # Craft de Pedra de Refinamento
+  pedra-craft:
+    cooldown-seconds: 120
+    diamonds: 25
+    iron-ingots: 20
+    oil-of-polishing: 15
+    gold-ingots: 10
+    min-level: 35
+  # Teletransporte — Rede de Rotas Comerciais
+  teleport:
+    enabled: true
+    min-level: 10
+    casting-seconds: 5
+    cooldown-seconds: 30
+    cancelled-cooldown-seconds: 10
+    max-passengers: 3
+    passenger-radius: 5
+    mana-cost: 50
+    mana-cost-per-passenger: 10
+    maintenance-xp-per-hour: 1
+    inactive-days-removal: 7
+    max-waypoints-by-level:
+      10: 2
+      35: 3
+  # Craft Selo de Rota Comercial
+  selo-craft:
+    cooldown-seconds: 120
+    ender-pearls: 16
+    honey-bottles: 1
+    filled-maps: 1
+    lapis-lazuli: 8
+    gold-ingots: 6
+  # Mensagens
+  messages:
+    level-too-low: '&c[Mercador] Voce precisa de nivel %level% na classe Mercador!'
+    cooldown: '&c[Mercador] Aguarde %seconds%s!'
+    already-identified: '&c[Mercador] Este item ja esta identificado!'
+    avaliacao-success: '&a[Mercador] Item avaliado com sucesso!'
+    no-xp: '&c[Mercador] Voce precisa de %levels% niveis de XP!'
+    craft-success: '&a[Mercador] Fabricacao concluida! %count%x %item%.'
+    craft-no-materials: '&c[Mercador] Materiais insuficientes!'
+    enchant-success: '&a[Mercador] Encantamento aplicado com sucesso!'
+    enchant-fail: '&c[Mercador] O encantamento falhou! Livro consumido.'
+    enchant-critical-fail: '&c[Mercador] Falha critica! Livro consumido e item danificado!'
+    enchant-preserve: '&a[Mercador] Sucesso critico! Livro preservado!'
+    not-enchantable: '&c[Mercador] Este item nao pode receber encantamentos!'
+    no-enchanted-book: '&c[Mercador] Coloque um livro encantado no slot!'
+    row-locked-alquimista: '&c[Mercador] Funcao requer Mesa de Transmutacao proxima!'
+    row-locked-ferreiro: '&c[Mercador] Funcao requer Mesa do Ferreiro proxima!'
+    teleport-start: '&6[Mercador] Canalizando teletransporte... Nao se mova! (5s)'
+    teleport-cancelled: '&c[Mercador] Teletransporte cancelado!'
+    teleport-success: '&a[Mercador] Teletransporte concluido!'
+    waypoint-registered: '&a[Mercador] Rota comercial registrada!'
+    waypoint-max: '&c[Mercador] Voce ja possui o maximo de rotas!'
+    waypoint-removed: '&c[Mercador] Rota comercial removida!'
+    no-selo: '&c[Mercador] Voce precisa de um Selo de Rota Comercial!'
+
+# Tipos MMOItems classificados por categoria
+type-categories:
+  weapon:
+    - SWORD
+    - DAGGER
+    - AXE
+    - BOW
+    - CROSSBOW
+    - STAFF
+    - WAND
+    - WHIP
+    - MUSKET
+    - LUTE
+    - SPEAR
+    - GREATSTAFF
+    - GREATSWORD
+    - HAMMER
+    - KATANA
+    - HALBERD
+    - GAUNTLET
+    - TRIDENT
+    - MACE
+  armor:
+    - HELMET
+    - CHESTPLATE
+    - LEGGINGS
+    - BOOTS
+    - ARMOR
+  accessory:
+    - RING
+    - TALISMAN
+    - ORNAMENT
+    - CATALYST
+    - NECKLACE
+    - BELT
+    - ACCESSORY
+  tool:
+    - PICKAXE
+    - SHOVEL
+    - HOE
+    - FISHING_ROD
+    - SHEARS
+    - TOOL
+  shield:
+    - SHIELD
+
+# Porcentagem de boost do Oleo de Polimento por stat
+polish-percent:
+  attack-damage: 8.0
+  armor: 8.0
+  armor-toughness: 8.0
+  max-health: 8.0
+  critical-strike-chance: 8.0
+  magic-damage: 8.0
+  critical-strike-power: 8.0
+  attack-speed: 8.0
+  defense: 8.0
+
+# ── Livro de Boas-Vindas (primeiro login) ──
+welcome-book:
+  enabled: true
+  on-spawn-command: true
+
+# ── Guerreiro (Drop de Orbs ao matar monstros) ──
+guerreiro:
+  class-name: Guerreiro
+  drops:
+    enabled: true
+    runa-de-poder-chance: 0.012
+    runa-nobre-chance: 0.006
+    moeda-da-sorte-chance: 0.005
+
+# ── Mensagens (use & para cores) ──
+messages:
+  prefix: '&8[&6NemonicOrb&8] '
+  # Erros gerais
+  no-target: '&cColoque o item alvo na mao secundaria!'
+  not-mmoitem: '&cO item na mao secundaria nao e um equipamento valido!'
+  unsupported-type: '&cEste tipo de item nao e suportado!'
+  cooldown: '&cAguarde antes de usar outra orb!'
+  no-permission: '&cVoce nao tem permissao para usar orbs!'
+  # Identificacao
+  already-identified: '&cEste item ja esta identificado!'
+  identify-success: '&aItem identificado com sucesso! Mods revelados.'
+  not-identified: '&cEste item precisa ser identificado primeiro!'
+  # Polimento
+  max-polish: '&cEste item ja foi polido o maximo de vezes! (%max%x)'
+  polish-success: '&aMods melhorados! Polimento: %count%/%max%. Mods travados! Apenas upgrade de tier permitido.'
+  no-mods-to-polish: '&cEste item nao possui mods para polir!'
+  polished-locked: '&cEste item foi polido! Mods travados. Apenas upgrade de tier permitido.'
+  # Tier
+  not-common: '&cEsta orb so funciona em itens Comuns (Tier 0)!'
+  not-magic: '&cEsta orb so funciona em itens Magicos (Tier 1)!'
+  not-rare: '&cEsta orb so funciona em itens Raros (Tier 2)!'
+  not-magic-or-rare: '&cEsta orb so funciona em itens Magicos ou Raros!'
+  is-unique: '&cItens Unicos nao podem ser modificados!'
+  needs-1-mod: '&cEste item Magico precisa de exatamente 1 mod para usar a Pedra de Reforco!'
+  already-2-mods: '&cEste item Magico ja possui 2 mods!'
+  needs-2-mods: '&cEste item Magico precisa de 2 mods para usar a Runa Nobre!'
+  slots-full: '&cTodos os slots de modificador estao ocupados!'
+  no-mods: '&cEste item nao possui modificadores!'
+  # Sucesso
+  transmute-success: '&aItem transformado em Magico! %count% mod(s) adicionado(s).'
+  augment-success: '&aMod adicionado ao item Magico! Agora com 2 mods.'
+  regal-success: '&aItem promovido a Raro! Mod extra adicionado.'
+  alchemy-success: '&aItem transformado em Raro! %count% mods adicionados.'
+  exalt-success: '&aNovo mod adicionado ao item Raro: &e%modifier%'
+  chance-success: '&aA sorte sorriu! Item agora e: %tier%'
+  chance-fail: '&cNada aconteceu... o item permanece Comum.'
+  annul-success: '&aMod removido: &c%modifier%'
+  # Admin
+  reload-success: '&aConfiguracoes e modificadores recarregados!'
+  set-tier-success: '&aTier do item alterado para %tier%.'
+  set-identified-success: '&aItem marcado como %status%.'
+
+# Mob loot global - equipamentos nao identificados
+mob-loot:
+  enabled: true
+  require-player-kill: true
+  equipment-drop-chance: 0.025
+  pergaminho-drop-chance: 0.045
+  item-level-base: 20
+  item-level-random-bonus: 15
+  tier-weights:
+    0: 72
+    1: 22
+    2: 6
+  iron-materials:
+    - IRON_SWORD
+    - IRON_AXE
+    - IRON_HELMET
+    - IRON_CHESTPLATE
+    - IRON_LEGGINGS
+    - IRON_BOOTS
+  copper-mmoitems:
+    - SWORD:COPPER_SWORD
+    - AXE:COPPER_AXE
+    - ARMOR:COPPER_HELMET
+    - ARMOR:COPPER_CHESTPLATE
+    - ARMOR:COPPER_LEGGINGS
+    - ARMOR:COPPER_BOOTS
+  diamond-materials:
+    - DIAMOND_SWORD
+    - DIAMOND_AXE
+    - DIAMOND_HELMET
+    - DIAMOND_CHESTPLATE
+    - DIAMOND_LEGGINGS
+    - DIAMOND_BOOTS

@@ -1,0 +1,1213 @@
+# ═══════════════════════════════════════════════════════════════
+# NemonicOrb — Pools de Modificadores
+# Formula de valor: value = (base + scale * itemLevel) * (1 ± spread)
+# spread = variacao aleatoria, max-spread = limite da variacao
+# ═══════════════════════════════════════════════════════════════
+
+# ── WEAPON ──────────────────────────────────────────────────
+nemonicorp_weapon_positive:
+    min: 1
+    max: 1
+    modifiers:
+        orb_w_dano_cat: 3
+        orb_w_crit_cat: 2
+        orb_w_atkspd_cat: 1
+        orb_w_skilldmg_cat: 2
+        orb_w_projdmg_cat: 1
+        orb_w_lifesteal_cat: 1
+        orb_w_util_cat: 1
+        orb_w_pve_cat: 1
+        orb_w_elemental_cat: 2
+        orb_w_spellcost_cat: 1
+nemonicorp_weapon_negative:
+    min: 0
+    max: 1
+    modifiers:
+        orb_w_neg_cat: 1
+
+# ── ARMOR ───────────────────────────────────────────────────
+nemonicorp_armor_positive:
+    min: 1
+    max: 1
+    modifiers:
+        orb_a_def_cat: 3
+        orb_a_tough_cat: 2
+        orb_a_hp_cat: 3
+        orb_a_mitigation_cat: 2
+        orb_a_resist_cat: 2
+        orb_a_mobility_cat: 1
+        orb_a_resource_cat: 1
+        orb_a_elemental_def_cat: 2
+        orb_a_bonusxp_cat: 1
+        orb_a_manaregen_cat: 1
+        orb_a_cdr_cat: 1
+        orb_a_loot_cat: 1
+nemonicorp_armor_negative:
+    min: 0
+    max: 1
+    modifiers:
+        orb_a_neg_cat: 1
+
+# ── ACCESSORY ───────────────────────────────────────────────
+nemonicorp_accessory_positive:
+    min: 1
+    max: 1
+    modifiers:
+        orb_x_resource_cat: 3
+        orb_x_cdr_cat: 2
+        orb_x_hp_cat: 2
+        orb_x_combat_cat: 2
+        orb_x_special_cat: 1
+        orb_x_bonusxp_cat: 1
+        orb_x_manaregen_cat: 1
+        orb_x_loot_cat: 1
+        orb_x_spelldmg_cat: 1
+nemonicorp_accessory_negative:
+    min: 0
+    max: 1
+    modifiers:
+        orb_x_neg_cat: 1
+
+# ── TOOL ────────────────────────────────────────────────────
+nemonicorp_tool_positive:
+    min: 1
+    max: 1
+    modifiers:
+        orb_t_mining_cat: 3
+        orb_t_fortune_cat: 2
+        orb_t_durability_cat: 2
+        orb_t_utility_cat: 2
+        orb_t_bonusxp_cat: 1
+nemonicorp_tool_negative:
+    min: 0
+    max: 1
+    modifiers:
+        orb_t_neg_cat: 1
+
+# ── SHIELD ──────────────────────────────────────────────────
+nemonicorp_shield_positive:
+    min: 1
+    max: 1
+    modifiers:
+        orb_s_block_cat: 3
+        orb_s_def_cat: 3
+        orb_s_hp_cat: 2
+        orb_s_resist_cat: 2
+        orb_s_elemental_def_cat: 2
+        orb_s_resource_cat: 1
+nemonicorp_shield_negative:
+    min: 0
+    max: 1
+    modifiers:
+        orb_s_neg_cat: 1
+
+# ═════════════════════════════════════════════════════════════
+#  WEAPON — Categorias
+# ═════════════════════════════════════════════════════════════
+
+orb_w_dano_cat:
+    max: 1
+    modifiers:
+        orb_w_atk_damage: 1
+        orb_w_physical_damage: 1
+        orb_w_magic_damage: 1
+        orb_w_weapon_damage: 1
+orb_w_crit_cat:
+    max: 1
+    modifiers:
+        orb_w_crit_chance: 1
+        orb_w_crit_power: 1
+        orb_w_skill_crit_chance: 1
+        orb_w_skill_crit_power: 1
+orb_w_atkspd_cat:
+    max: 1
+    modifiers:
+        orb_w_atk_speed: 1
+orb_w_skilldmg_cat:
+    max: 1
+    modifiers:
+        orb_w_skill_damage: 1
+orb_w_projdmg_cat:
+    max: 1
+    modifiers:
+        orb_w_projectile_damage: 1
+orb_w_lifesteal_cat:
+    max: 1
+    modifiers:
+        orb_w_lifesteal: 1
+orb_w_util_cat:
+    max: 1
+    modifiers:
+        orb_w_vida: 1
+        orb_w_knockback_res: 1
+        orb_w_sweeping: 1
+        orb_w_stamina: 1
+orb_w_pve_cat:
+    max: 1
+    modifiers:
+        orb_w_pve_damage: 1
+orb_w_elemental_cat:
+    max: 1
+    modifiers:
+        orb_w_fire_damage: 1
+        orb_w_ice_damage: 1
+        orb_w_lightning_damage: 1
+        orb_w_earth_damage: 1
+        orb_w_water_damage: 1
+        orb_w_wind_damage: 1
+orb_w_spellcost_cat:
+    max: 1
+    modifiers:
+        orb_w_spell_cost: 1
+orb_w_neg_cat:
+    max: 1
+    modifiers:
+        orb_w_neg_atkspd: 1
+        orb_w_neg_critchance: 1
+        orb_w_neg_maxhealth: 1
+
+# ═════════════════════════════════════════════════════════════
+#  WEAPON — Individuais
+# ═════════════════════════════════════════════════════════════
+
+orb_w_atk_damage:
+    stats:
+        attack-damage:
+            base: 3
+            scale: 0.3
+            spread: 0.15
+            max-spread: 0.35
+orb_w_physical_damage:
+    stats:
+        physical-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_magic_damage:
+    stats:
+        magic-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_weapon_damage:
+    stats:
+        weapon-damage:
+            base: 4
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_w_crit_chance:
+    stats:
+        critical-strike-chance:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_w_crit_power:
+    stats:
+        critical-strike-power:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_skill_crit_chance:
+    stats:
+        skill-critical-strike-chance:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_w_skill_crit_power:
+    stats:
+        skill-critical-strike-power:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_atk_speed:
+    stats:
+        attack-speed:
+            base: 3
+            scale: 0.2
+            spread: 0.1
+            max-spread: 0.25
+orb_w_skill_damage:
+    stats:
+        skill-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_projectile_damage:
+    stats:
+        projectile-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_lifesteal:
+    stats:
+        lifesteal:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_w_pve_damage:
+    stats:
+        pve-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_vida:
+    stats:
+        max-health:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_knockback_res:
+    stats:
+        knockback-resistance:
+            base: 0.1
+            scale: 0.01
+            spread: 0.1
+            max-spread: 0.25
+orb_w_sweeping:
+    stats:
+        sweeping-damage-ratio:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_w_stamina:
+    stats:
+        max-stamina:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_w_spell_cost:
+    stats:
+        spell-vampirism:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_w_fire_damage:
+    stats:
+        fire-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.15
+            max-spread: 0.3
+orb_w_ice_damage:
+    stats:
+        ice-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.15
+            max-spread: 0.3
+orb_w_lightning_damage:
+    stats:
+        lightning-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.15
+            max-spread: 0.3
+orb_w_earth_damage:
+    stats:
+        earth-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.15
+            max-spread: 0.3
+orb_w_water_damage:
+    stats:
+        water-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.15
+            max-spread: 0.3
+orb_w_wind_damage:
+    stats:
+        wind-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.15
+            max-spread: 0.3
+orb_w_neg_atkspd:
+    stats:
+        attack-speed:
+            base: -2
+            scale: -0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_w_neg_critchance:
+    stats:
+        critical-strike-chance:
+            base: -3
+            scale: -0.2
+            spread: 0.1
+            max-spread: 0.25
+orb_w_neg_maxhealth:
+    stats:
+        max-health:
+            base: -3
+            scale: -0.2
+            spread: 0.1
+            max-spread: 0.25
+
+# ═════════════════════════════════════════════════════════════
+#  ARMOR — Categorias
+# ═════════════════════════════════════════════════════════════
+
+orb_a_def_cat:
+    max: 1
+    modifiers:
+        orb_a_armor: 1
+        orb_a_defense: 1
+orb_a_tough_cat:
+    max: 1
+    modifiers:
+        orb_a_toughness: 1
+orb_a_hp_cat:
+    max: 1
+    modifiers:
+        orb_a_max_health: 1
+        orb_a_max_absorption: 1
+        orb_a_health_regen: 1
+orb_a_mitigation_cat:
+    max: 1
+    modifiers:
+        orb_a_block_rating: 1
+        orb_a_block_power: 1
+        orb_a_dodge_rating: 1
+        orb_a_parry_rating: 1
+orb_a_resist_cat:
+    max: 1
+    modifiers:
+        orb_a_knockback_res: 1
+        orb_a_explosion_res: 1
+        orb_a_fall_damage_red: 1
+orb_a_mobility_cat:
+    max: 1
+    modifiers:
+        orb_a_speed_malus: 1
+orb_a_resource_cat:
+    max: 1
+    modifiers:
+        orb_a_max_mana: 1
+        orb_a_max_stamina: 1
+        orb_a_stamina_regen: 1
+# Defesas elementais — permite multiplas no mesmo item
+orb_a_elemental_def_cat:
+    max: 3
+    modifiers:
+        orb_a_fire_defense: 1
+        orb_a_ice_defense: 1
+        orb_a_lightning_defense: 1
+        orb_a_earth_defense: 1
+        orb_a_water_defense: 1
+        orb_a_wind_defense: 1
+orb_a_bonusxp_cat:
+    max: 1
+    modifiers:
+        orb_a_skill_exp: 1
+        orb_a_vanilla_exp: 1
+orb_a_manaregen_cat:
+    max: 1
+    modifiers:
+        orb_a_mana_regen: 1
+orb_a_cdr_cat:
+    max: 1
+    modifiers:
+        orb_a_cooldown_red: 1
+orb_a_loot_cat:
+    max: 1
+    modifiers:
+        orb_a_loot_bonus: 1
+orb_a_neg_cat:
+    max: 1
+    modifiers:
+        orb_a_neg_weight: 1
+        orb_a_neg_dodge: 1
+
+# ═════════════════════════════════════════════════════════════
+#  ARMOR — Individuais
+# ═════════════════════════════════════════════════════════════
+
+orb_a_armor:
+    stats:
+        armor:
+            base: 3
+            scale: 0.3
+            spread: 0.15
+            max-spread: 0.35
+orb_a_defense:
+    stats:
+        defense:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_a_toughness:
+    stats:
+        armor-toughness:
+            base: 2
+            scale: 0.15
+            spread: 0.12
+            max-spread: 0.3
+orb_a_max_health:
+    stats:
+        max-health:
+            base: 8
+            scale: 0.8
+            spread: 0.12
+            max-spread: 0.3
+orb_a_max_absorption:
+    stats:
+        max-absorption:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_a_health_regen:
+    stats:
+        health-regeneration:
+            base: 2
+            scale: 0.2
+            spread: 0.1
+            max-spread: 0.25
+orb_a_block_rating:
+    stats:
+        block-rating:
+            base: 3
+            scale: 0.3
+            spread: 0.1
+            max-spread: 0.25
+orb_a_block_power:
+    stats:
+        block-power:
+            base: 4
+            scale: 0.4
+            spread: 0.1
+            max-spread: 0.25
+orb_a_dodge_rating:
+    stats:
+        dodge-rating:
+            base: 3
+            scale: 0.3
+            spread: 0.1
+            max-spread: 0.25
+orb_a_parry_rating:
+    stats:
+        parry-rating:
+            base: 3
+            scale: 0.3
+            spread: 0.1
+            max-spread: 0.25
+orb_a_knockback_res:
+    stats:
+        knockback-resistance:
+            base: 0.1
+            scale: 0.008
+            spread: 0.12
+            max-spread: 0.3
+orb_a_explosion_res:
+    stats:
+        explosion-knockback-resistance:
+            base: 2
+            scale: 0.15
+            spread: 0.12
+            max-spread: 0.3
+orb_a_fall_damage_red:
+    stats:
+        fall-damage-multiplier:
+            base: -3
+            scale: -0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_a_speed_malus:
+    stats:
+        speed-malus-reduction:
+            base: 5
+            scale: 0.5
+            spread: 0.1
+            max-spread: 0.25
+orb_a_max_mana:
+    stats:
+        max-mana:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_a_max_stamina:
+    stats:
+        max-stamina:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_a_stamina_regen:
+    stats:
+        stamina-regeneration:
+            base: 2
+            scale: 0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_a_fire_defense:
+    stats:
+        fire-defense:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_ice_defense:
+    stats:
+        ice-defense:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_lightning_defense:
+    stats:
+        lightning-defense:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_earth_defense:
+    stats:
+        earth-defense:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_water_defense:
+    stats:
+        water-defense:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_wind_defense:
+    stats:
+        wind-defense:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_skill_exp:
+    stats:
+        skill-exp-gain:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_a_vanilla_exp:
+    stats:
+        vanilla-exp-gain:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_a_mana_regen:
+    stats:
+        mana-regeneration:
+            base: 2
+            scale: 0.2
+            spread: 0.1
+            max-spread: 0.25
+orb_a_cooldown_red:
+    stats:
+        cooldown-reduction:
+            base: 3
+            scale: 0.3
+            spread: 0.1
+            max-spread: 0.25
+orb_a_loot_bonus:
+    stats:
+        luck:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_a_neg_weight:
+    stats:
+        speed-malus-reduction:
+            base: -3
+            scale: -0.3
+            spread: 0.1
+            max-spread: 0.25
+orb_a_neg_dodge:
+    stats:
+        dodge-rating:
+            base: -3
+            scale: -0.2
+            spread: 0.1
+            max-spread: 0.25
+
+# ═════════════════════════════════════════════════════════════
+#  ACCESSORY — Categorias
+# ═════════════════════════════════════════════════════════════
+
+orb_x_resource_cat:
+    max: 1
+    modifiers:
+        orb_x_max_mana: 1
+        orb_x_mana_regen: 1
+        orb_x_max_stamina: 1
+        orb_x_stamina_regen: 1
+        orb_x_max_stellium: 1
+        orb_x_stellium_regen: 1
+orb_x_cdr_cat:
+    max: 1
+    modifiers:
+        orb_x_cooldown_red: 1
+        orb_x_block_cd_red: 1
+        orb_x_dodge_cd_red: 1
+        orb_x_parry_cd_red: 1
+orb_x_hp_cat:
+    max: 1
+    modifiers:
+        orb_x_max_health: 1
+        orb_x_health_regen: 1
+orb_x_combat_cat:
+    max: 1
+    modifiers:
+        orb_x_skill_damage: 1
+        orb_x_magic_damage: 1
+        orb_x_skill_crit_chance: 1
+orb_x_special_cat:
+    max: 1
+    modifiers:
+        orb_x_luck: 1
+        orb_x_additional_exp: 1
+orb_x_bonusxp_cat:
+    max: 1
+    modifiers:
+        orb_x_skill_exp: 1
+        orb_x_vanilla_exp: 1
+orb_x_manaregen_cat:
+    max: 1
+    modifiers:
+        orb_x_mana_regen_acc: 1
+orb_x_loot_cat:
+    max: 1
+    modifiers:
+        orb_x_loot_bonus: 1
+orb_x_spelldmg_cat:
+    max: 1
+    modifiers:
+        orb_x_fire_spell_dmg: 1
+        orb_x_ice_spell_dmg: 1
+        orb_x_lightning_spell_dmg: 1
+        orb_x_earth_spell_dmg: 1
+        orb_x_water_spell_dmg: 1
+        orb_x_wind_spell_dmg: 1
+orb_x_neg_cat:
+    max: 1
+    modifiers:
+        orb_x_neg_mana: 1
+        orb_x_neg_stamina: 1
+
+# ═════════════════════════════════════════════════════════════
+#  ACCESSORY — Individuais
+# ═════════════════════════════════════════════════════════════
+
+orb_x_max_mana:
+    stats:
+        max-mana:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_x_mana_regen:
+    stats:
+        mana-regeneration:
+            base: 2
+            scale: 0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_x_max_stamina:
+    stats:
+        max-stamina:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_x_stamina_regen:
+    stats:
+        stamina-regeneration:
+            base: 2
+            scale: 0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_x_max_stellium:
+    stats:
+        max-stellium:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_x_stellium_regen:
+    stats:
+        stellium-regeneration:
+            base: 2
+            scale: 0.1
+            spread: 0.1
+            max-spread: 0.25
+orb_x_cooldown_red:
+    stats:
+        cooldown-reduction:
+            base: 3
+            scale: 0.3
+            spread: 0.1
+            max-spread: 0.25
+orb_x_block_cd_red:
+    stats:
+        block-cooldown-reduction:
+            base: 4
+            scale: 0.4
+            spread: 0.1
+            max-spread: 0.25
+orb_x_dodge_cd_red:
+    stats:
+        dodge-cooldown-reduction:
+            base: 4
+            scale: 0.4
+            spread: 0.1
+            max-spread: 0.25
+orb_x_parry_cd_red:
+    stats:
+        parry-cooldown-reduction:
+            base: 4
+            scale: 0.4
+            spread: 0.1
+            max-spread: 0.25
+orb_x_max_health:
+    stats:
+        max-health:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_x_health_regen:
+    stats:
+        health-regeneration:
+            base: 2
+            scale: 0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_x_skill_damage:
+    stats:
+        skill-damage:
+            base: 4
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_x_magic_damage:
+    stats:
+        magic-damage:
+            base: 4
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_x_skill_crit_chance:
+    stats:
+        skill-critical-strike-chance:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_x_luck:
+    stats:
+        luck:
+            base: 1
+            scale: 0.1
+            spread: 0.10
+            max-spread: 0.25
+orb_x_additional_exp:
+    stats:
+        additional-experience:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_x_skill_exp:
+    stats:
+        skill-exp-gain:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_x_vanilla_exp:
+    stats:
+        vanilla-exp-gain:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_mana_regen_acc:
+    stats:
+        mana-regeneration:
+            base: 2
+            scale: 0.2
+            spread: 0.1
+            max-spread: 0.25
+orb_x_loot_bonus:
+    stats:
+        luck:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_x_fire_spell_dmg:
+    stats:
+        fire-spell-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_ice_spell_dmg:
+    stats:
+        ice-spell-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_lightning_spell_dmg:
+    stats:
+        lightning-spell-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_earth_spell_dmg:
+    stats:
+        earth-spell-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_water_spell_dmg:
+    stats:
+        water-spell-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_wind_spell_dmg:
+    stats:
+        wind-spell-damage:
+            base: 5
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_x_neg_mana:
+    stats:
+        max-mana:
+            base: -3
+            scale: -0.2
+            spread: 0.1
+            max-spread: 0.3
+orb_x_neg_stamina:
+    stats:
+        max-stamina:
+            base: -3
+            scale: -0.2
+            spread: 0.1
+            max-spread: 0.3
+
+# ═════════════════════════════════════════════════════════════
+#  TOOL — Categorias e Individuais
+# ═════════════════════════════════════════════════════════════
+
+orb_t_mining_cat:
+    max: 1
+    modifiers:
+        orb_t_mining_efficiency: 1
+orb_t_fortune_cat:
+    max: 1
+    modifiers:
+        orb_t_fortune: 1
+orb_t_durability_cat:
+    max: 1
+    modifiers:
+        orb_t_unbreaking: 1
+orb_t_utility_cat:
+    max: 1
+    modifiers:
+        orb_t_max_health: 1
+        orb_t_luck: 1
+orb_t_bonusxp_cat:
+    max: 1
+    modifiers:
+        orb_t_vanilla_exp: 1
+        orb_t_skill_exp: 1
+orb_t_combat_cat:
+    max: 1
+    modifiers:
+        orb_t_atk_damage: 1
+        orb_t_knockback: 1
+orb_t_neg_cat:
+    max: 1
+    modifiers:
+        orb_t_neg_atkspd: 1
+
+# Tool — Individuais
+# mining-efficiency/mining-speed: % bonus (valores altos OK)
+# fortune/unbreaking/knockback: nivel de encantamento (max 3/3/2)
+orb_t_mining_efficiency:
+    stats:
+        mining-efficiency:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_t_fortune:
+    stats:
+        fortune:
+            base: 0.3
+            scale: 0.03
+            spread: 0.10
+            max-spread: 0.20
+orb_t_unbreaking:
+    stats:
+        unbreaking:
+            base: 0.3
+            scale: 0.03
+            spread: 0.10
+            max-spread: 0.20
+orb_t_max_health:
+    stats:
+        max-health:
+            base: 2
+            scale: 0.15
+            spread: 0.12
+            max-spread: 0.3
+orb_t_luck:
+    stats:
+        luck:
+            base: 0.5
+            scale: 0.05
+            spread: 0.10
+            max-spread: 0.25
+orb_t_vanilla_exp:
+    stats:
+        vanilla-exp-gain:
+            base: 3
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_t_skill_exp:
+    stats:
+        skill-exp-gain:
+            base: 2
+            scale: 0.2
+            spread: 0.12
+            max-spread: 0.3
+orb_t_atk_damage:
+    stats:
+        attack-damage:
+            base: 1
+            scale: 0.1
+            spread: 0.12
+            max-spread: 0.3
+orb_t_knockback:
+    stats:
+        knockback:
+            base: 0.2
+            scale: 0.02
+            spread: 0.10
+            max-spread: 0.20
+orb_t_neg_atkspd:
+    stats:
+        attack-speed:
+            base: -1
+            scale: -0.08
+            spread: 0.1
+            max-spread: 0.25
+
+# ═════════════════════════════════════════════════════════════
+#  SHIELD — Categorias e Individuais
+# ═════════════════════════════════════════════════════════════
+
+orb_s_block_cat:
+    max: 1
+    modifiers:
+        orb_s_block_rating: 1
+        orb_s_block_power: 1
+orb_s_def_cat:
+    max: 1
+    modifiers:
+        orb_s_armor: 1
+        orb_s_defense: 1
+        orb_s_toughness: 1
+orb_s_hp_cat:
+    max: 1
+    modifiers:
+        orb_s_max_health: 1
+        orb_s_health_regen: 1
+orb_s_resist_cat:
+    max: 1
+    modifiers:
+        orb_s_knockback_res: 1
+        orb_s_explosion_res: 1
+orb_s_elemental_def_cat:
+    max: 2
+    modifiers:
+        orb_s_fire_defense: 1
+        orb_s_ice_defense: 1
+        orb_s_lightning_defense: 1
+        orb_s_earth_defense: 1
+        orb_s_water_defense: 1
+        orb_s_wind_defense: 1
+orb_s_resource_cat:
+    max: 1
+    modifiers:
+        orb_s_max_stamina: 1
+        orb_s_stamina_regen: 1
+        orb_s_max_mana: 1
+orb_s_neg_cat:
+    max: 1
+    modifiers:
+        orb_s_neg_atkspd: 1
+
+# Shield — Individuais
+orb_s_block_rating:
+    stats:
+        block-rating:
+            base: 6
+            scale: 0.6
+            spread: 0.1
+            max-spread: 0.25
+orb_s_block_power:
+    stats:
+        block-power:
+            base: 7
+            scale: 0.7
+            spread: 0.1
+            max-spread: 0.25
+orb_s_armor:
+    stats:
+        armor:
+            base: 3
+            scale: 0.3
+            spread: 0.15
+            max-spread: 0.35
+orb_s_defense:
+    stats:
+        defense:
+            base: 4
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_s_toughness:
+    stats:
+        armor-toughness:
+            base: 2
+            scale: 0.15
+            spread: 0.12
+            max-spread: 0.3
+orb_s_max_health:
+    stats:
+        max-health:
+            base: 6
+            scale: 0.5
+            spread: 0.12
+            max-spread: 0.3
+orb_s_health_regen:
+    stats:
+        health-regeneration:
+            base: 2
+            scale: 0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_s_knockback_res:
+    stats:
+        knockback-resistance:
+            base: 0.15
+            scale: 0.01
+            spread: 0.12
+            max-spread: 0.3
+orb_s_explosion_res:
+    stats:
+        explosion-knockback-resistance:
+            base: 3
+            scale: 0.2
+            spread: 0.12
+            max-spread: 0.3
+orb_s_fire_defense:
+    stats:
+        fire-defense:
+            base: 6
+            scale: 0.6
+            spread: 0.12
+            max-spread: 0.3
+orb_s_ice_defense:
+    stats:
+        ice-defense:
+            base: 6
+            scale: 0.6
+            spread: 0.12
+            max-spread: 0.3
+orb_s_lightning_defense:
+    stats:
+        lightning-defense:
+            base: 6
+            scale: 0.6
+            spread: 0.12
+            max-spread: 0.3
+orb_s_earth_defense:
+    stats:
+        earth-defense:
+            base: 6
+            scale: 0.6
+            spread: 0.12
+            max-spread: 0.3
+orb_s_water_defense:
+    stats:
+        water-defense:
+            base: 6
+            scale: 0.6
+            spread: 0.12
+            max-spread: 0.3
+orb_s_wind_defense:
+    stats:
+        wind-defense:
+            base: 6
+            scale: 0.6
+            spread: 0.12
+            max-spread: 0.3
+orb_s_max_stamina:
+    stats:
+        max-stamina:
+            base: 5
+            scale: 0.4
+            spread: 0.12
+            max-spread: 0.3
+orb_s_stamina_regen:
+    stats:
+        stamina-regeneration:
+            base: 2
+            scale: 0.15
+            spread: 0.1
+            max-spread: 0.25
+orb_s_max_mana:
+    stats:
+        max-mana:
+            base: 4
+            scale: 0.3
+            spread: 0.12
+            max-spread: 0.3
+orb_s_neg_atkspd:
+    stats:
+        attack-speed:
+            base: -2
+            scale: -0.2
+            spread: 0.1
+            max-spread: 0.25
