@@ -3,7 +3,7 @@
 # ✦ NemonicOrbPlugin
 ### Sistema de Modificação de Itens para Minecraft Java
 
-[![Version](https://img.shields.io/badge/versão-v2.5.0-gold?style=for-the-badge&logo=minecraft&logoColor=white)](.)
+[![Version](https://img.shields.io/badge/versão-v2.6.0-gold?style=for-the-badge&logo=minecraft&logoColor=white)](.)
 [![Server](https://img.shields.io/badge/servidor-NemonicRP-purple?style=for-the-badge)](.)
 [![API](https://img.shields.io/badge/Paper%20%2F%20Spigot-1.20+-green?style=for-the-badge&logo=java)](.)
 [![MMOItems](https://img.shields.io/badge/MMOItems-compatível-blue?style=for-the-badge)](.)

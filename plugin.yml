@@ -1,5 +1,5 @@
 name: NemonicOrbPlugin
-version: '2.5.0'
+version: '2.6.0'
 main: com.nemonicorp.orbs.NemonicOrbPlugin
 api-version: '1.21'
 description: Sistema de Orbs v2.1 (PoE2-style) para NemonicRP - Suporte a itens vanilla
