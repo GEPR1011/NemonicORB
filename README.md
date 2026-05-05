@@ -5,7 +5,8 @@
 
 [![Version](https://img.shields.io/badge/versão-v2.6.0-gold?style=for-the-badge&logo=minecraft&logoColor=white)](.)
 [![Server](https://img.shields.io/badge/servidor-NemonicRP-purple?style=for-the-badge)](.)
-[![API](https://img.shields.io/badge/Paper%20%2F%20Spigot-1.20+-green?style=for-the-badge&logo=java)](.)
+[![API](https://img.shields.io/badge/Paper%20%2F%20Spigot-1.21+-green?style=for-the-badge&logo=java)](.)
+[![Java](https://img.shields.io/badge/Java-21+-orange?style=for-the-badge&logo=openjdk)](.)
 [![MMOItems](https://img.shields.io/badge/MMOItems-compatível-blue?style=for-the-badge)](.)
 [![MMOCore](https://img.shields.io/badge/MMOCore-compatível-blue?style=for-the-badge)](.)
 
@@ -178,10 +179,61 @@ Mercadores têm multiplicador de drop de equipamentos e pergaminhos. Alquimistas
 
 | Requisito | Versão |
 |---|---|
-| Minecraft Java | 1.20+ |
-| Server Software | Paper ou Spigot |
-| MMOItems | Compatível |
-| MMOCore | Compatível |
+| Minecraft Java | 1.21+ |
+| Server Software | Paper (recomendado) ou Spigot |
+| Java Runtime | 21+ |
+
+---
+
+## 📦 Dependências do Plugin
+
+Para o plugin **funcionar no servidor**, instale na pasta `plugins/`:
+
+### Obrigatórias (`depend`)
+| Plugin | Versão mínima | Onde obter |
+|---|---|---|
+| **MMOItems** | 6.10+ | [SpigotMC / loja Lumine](https://www.spigotmc.org/resources/mmoitems.39267/) |
+| **MythicLib** | 1.7.1+ | [SpigotMC](https://www.spigotmc.org/resources/mythiclib.90306/) (vem junto com MMOItems) |
+
+### Opcionais (`softdepend`)
+| Plugin | Função | Onde obter |
+|---|---|---|
+| **MMOCore** | Habilita escala de stats por nível de classe (Alquimista, Ferreiro, Mercador, Guerreiro) | [SpigotMC](https://www.spigotmc.org/resources/mmocore.70575/) |
+| **ProtocolLib** | Melhora alguns efeitos visuais | [SpigotMC](https://www.spigotmc.org/resources/protocollib.1997/) |
+
+> Sem MMOCore, os mods rolam com valores base (sem escala por nível). Sem MMOItems/MythicLib o plugin **não inicia**.
+
+---
+
+## 🚀 Como Instalar
+
+1. Baixe o `NemonicOrbPlugin.jar` (releases ou compile pelo passo abaixo).
+2. Coloque o arquivo dentro da pasta `plugins/` do servidor.
+3. Instale também as dependências obrigatórias acima.
+4. Inicie o servidor uma vez para gerar `plugins/NemonicOrbPlugin/config.yml` e `nemonicorp_orb_modifiers.yml`.
+5. Edite os YAMLs conforme desejar e rode `/norb reload` (ou reinicie).
+
+---
+
+## 🛠️ Como Compilar a partir do Código-Fonte
+
+Pré-requisitos: **JDK 21** e **Maven 3.8+** instalados.
+
+```bash
+git clone https://github.com/GEPR1011/NemonicORB.git
+cd NemonicORB
+mvn clean package
+```
+
+O JAR final fica em `target/NemonicOrbPlugin.jar`.
+
+### Estrutura do projeto
+```
+NemonicORB/
+├── pom.xml                                # configuração Maven + dependências
+├── src/main/java/com/nemonicorp/orbs/    # código-fonte (.java)
+└── src/main/resources/                    # config.yml, plugin.yml, modifiers
+```
 
 ---
 
