@@ -1,0 +1,226 @@
+# 1. Pergaminho de Identificacao (Scroll of Wisdom)
+# Revela mods ocultos de item nao identificado
+# Producao: Mercador
+# ──────────────────────────────────────────────
+PERGAMINHO_DE_IDENTIFICACAO:
+  base:
+    material: PLAYER_HEAD
+    name: '&f📜 Pergaminho de Identificacao'
+    tier: UNIQUE
+    lore:
+    - '&7Revela os &amods ocultos'
+    - '&7de um item nao identificado.'
+    - ''
+    - '&8Sem restricao de nivel'
+    - '&8Producao: &7Mercador'
+    - '&6Risco: &aNenhum'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 2.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmI4ZWM1N2IzN2ZkZjA5M2ZlNjZlZmUyYWMwNzBhOGY1MTgxOTQ5OTcwYTQ0NThkNTZlYzk3MDFlZGVkOGNmZiJ9fX0=
+      uuid: dc1aa86c-d217-4c05-964a-47076fd8132b
+
+# ──────────────────────────────────────────────
+# 2. Oleo de Polimento (Divine Orb)
+# Melhora qualidade base — max 5 usos por item
+# Producao: Ferreiro
+# ──────────────────────────────────────────────
+OLEO_DE_POLIMENTO:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDMwOTNhNWI3NzY0MmQ0MDkyMTEyZjQ2ZWE2ODE0MGZiNWFlMDRiYmQyMzFjZGExMDY2YTA0YzE4Yjg5Yzk0ZSJ9fX0=
+      uuid: 4b3620e5-b1bb-4295-955e-2ce42af1876c
+    name: '&6🔥 Oleo de Polimento'
+    tier: UNIQUE
+    lore:
+    - '&7Melhora a &aqualidade base'
+    - '&7do item. Maximo &e5 usos&7.'
+    - ''
+    - '&8Nao altera modificadores'
+    - '&8Producao: &7Ferreiro (Forja)'
+    - '&6Risco: &aBaixo'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+
+# ──────────────────────────────────────────────
+# 3. Pedra de Encantamento (Orb of Transmutation)
+# Comum → Magico, adiciona 1-2 mods
+# Producao: Alquimista ou drop de mob
+# ──────────────────────────────────────────────
+PEDRA_DE_ENCANTAMENTO:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzk3NTQ4MGU1MGRhYzc0OTY4OTVkYzdjZTMxMzFjZTUxNjNhYjEwMGVlOWI0OWQ1ODZmMjZhY2RlOTk2YWRlMSJ9fX0=
+      uuid: 94b93c4b-28cf-4fe2-8dbd-5aaf3cb58684
+    name: '&9🔵 Pedra de Encantamento'
+    tier: UNIQUE
+    lore:
+    - '&7Transforma um item &fComum'
+    - '&7em &9Magico&7, adicionando'
+    - '&71-2 mods aleatorios.'
+    - ''
+    - '&8Alvo: &7Itens Comuns (Tier 0)'
+    - '&8Producao: &7Alquimista / Drop'
+    - '&6Risco: &aBaixo'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+
+# ──────────────────────────────────────────────
+# 4. Pedra de Reforco (Orb of Augmentation)
+# Adiciona 1 mod a Magico com 1 mod
+# Producao: Alquimista ou drop
+# ──────────────────────────────────────────────
+PEDRA_DE_REFORCO:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzBmOGNkMzdmZWNkMTcyY2Q3MDBiZGQxMGVjZTFhYzUyMzIwNjA5ZDA4NGFmZDIwMjBhNTZiZThhZTlkNzEwNCJ9fX0=
+      uuid: 546d38e8-e5aa-491b-bdc1-08fd94094fe5
+    name: '&9🔷 Pedra de Reforco'
+    tier: UNIQUE
+    lore:
+    - '&7Adiciona &a1 mod&7 a um item'
+    - '&9Magico&7 que tem apenas 1 mod.'
+    - '&7Preenche o segundo slot.'
+    - ''
+    - '&8Alvo: &7Magicos com 1 mod'
+    - '&8Producao: &7Alquimista / Drop'
+    - '&6Risco: &aBaixo'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+
+# ──────────────────────────────────────────────
+# 5. Runa Nobre (Regal Orb)
+# Magico (2 mods) → Raro (+1 mod)
+# Drop: Boss de dungeon (Guerreiro)
+# ──────────────────────────────────────────────
+RUNA_NOBRE:
+  base:
+    material: PLAYER_HEAD
+    name: '&e👑 Runa Nobre'
+    tier: UNIQUE
+    lore:
+    - '&7Transforma um item &9Magico'
+    - '&7com 2 mods em &eRaro&7,'
+    - '&7adicionando 1 mod extra.'
+    - ''
+    - '&8Alvo: &7Magicos com 2 mods'
+    - '&8Drop: &7Boss de Dungeon'
+    - '&6Risco: &eBaixo-Medio'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODdmYWRmNGEyYWExNzA1ZDE4Y2E3MDM0OTcwMWNhOGJhZWEzNjhkNGYyZmVlYThmN2RlMjM0MGE5Mzc2MWVmNSJ9fX0=
+      uuid: e024d60d-3bed-4873-b3bd-ee14c80a241b
+
+# ──────────────────────────────────────────────
+# 6. Pedra de Refinamento (Orb of Alchemy)
+# Comum → Raro direto, 3-6 mods
+# Craft Coletivo: Ferreiro + Alquimista
+# ──────────────────────────────────────────────
+PEDRA_DE_REFINAMENTO:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWZhMTVmMWZhZDc0NWYwNDQ3M2NmNzVkNGFlZjNhZDY0YWNhM2U3N2ViYWUyZDAwZGU4NDdlZDdlZmE0ZDkxNiJ9fX0=
+      uuid: 11dfcd97-5f84-4a7f-bed7-92d84f5d155f
+    name: '&e🟡 Pedra de Refinamento'
+    tier: UNIQUE
+    lore:
+    - '&7Transforma um item &fComum'
+    - '&7diretamente em &eRaro&7,'
+    - '&7adicionando 3-6 mods.'
+    - ''
+    - '&8Alvo: &7Itens Comuns (Tier 0)'
+    - '&8Craft: &7Ferreiro + Alquimista'
+    - '&6Risco: &eMedio'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+
+# ──────────────────────────────────────────────
+# 7. Runa de Poder (Exalted Orb)
+# Adiciona 1 mod a Raro (max 6 mods)
+# Drop: Boss de elite — extremamente raro
+# ──────────────────────────────────────────────
+RUNA_DE_PODER:
+  base:
+    material: PLAYER_HEAD
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzdiYTFhYWRkOWI2YTE1ZDQ2OGI0MGUyZTRhOWIyZjg5Y2JlN2ZlNTI5YjRjOGNhOTMwZWI0Nzk1ZGZmM2U4YiJ9fX0=
+      uuid: 7dee3d2d-4db9-444d-996b-d7f99268d7ba
+    name: '&e⭐ Runa de Poder'
+    tier: UNIQUE
+    lore:
+    - '&7Adiciona &a1 mod aleatorio'
+    - '&7a um item &eRaro&7 com'
+    - '&7slots livres (max 6 mods).'
+    - ''
+    - '&8Alvo: &7Raros com < 6 mods'
+    - '&8Drop: &7Boss de Elite (raro)'
+    - '&6Risco: &eMedio'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+
+# ──────────────────────────────────────────────
+# 8. Moeda da Sorte (Orb of Chance)
+# Comum → Tier aleatorio (Magico/Raro/Unico)
+# Item raro — locais especificos
+# ──────────────────────────────────────────────
+MOEDA_DA_SORTE:
+  base:
+    material: PLAYER_HEAD
+    name: '&b🎲 Moeda da Sorte'
+    tier: UNIQUE
+    lore:
+    - '&7Aplica um &atier aleatorio'
+    - '&7a um item &fComum&7, adicionando'
+    - '&7modificadores ao item.'
+    - '&775% Magico, 23% Raro,'
+    - '&72% Unico (baixissima chance).'
+    - ''
+    - '&8Alvo: &7Itens Comuns (Tier 0)'
+    - '&8Obtencao: &7Locais especificos'
+    - '&6Risco: &cAlto (aleatorio)'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmE0YmJhNjhmYjVlMGU3NjEzYjM2MmU2YTc5MWVjMTMyYmQ1YTZhZTIzZjYxYTlhMjk5ZGRkNzhjNWFmOSJ9fX0=
+      uuid: ad98d895-2254-4cbc-a5d0-3ea5cbb578e2
+
+# ──────────────────────────────────────────────
+# 9. Pedra Corrosiva (Orb of Annulment)
+# Remove 1 mod aleatorio (pode ser bom ou ruim)
+# Drop: Boss de elite — rara
+# ──────────────────────────────────────────────
+PEDRA_CORROSIVA:
+  base:
+    material: PLAYER_HEAD
+    name: '&8❌ Pedra Corrosiva'
+    tier: UNIQUE
+    lore:
+    - '&7Remove &c1 mod aleatorio'
+    - '&7do item (pode ser positivo'
+    - '&7ou negativo).'
+    - ''
+    - '&8Alvo: &7Magicos ou Raros'
+    - '&8Drop: &7Boss de Elite (rara)'
+    - '&6Risco: &cAlto'
+    disable-interaction: true
+    inedible: true
+    item-cooldown: 5.0
+    skull-texture:
+      value: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjQ0MmExZTA4ZWE3N2ZkMTQ0YzhmZjRjZGFlZjZlMGE5YWFmYjgzZmRjZjM5OGQxNDhkOGYxNzQ0NGM4ZmE2NyJ9fX0=
+      uuid: 7d29ea69-b770-4604-bdca-0312038793a1
+NEW_ITEM_ID:
+  base:
+    material: APPLE

@@ -1,32 +1,6 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  io.lumine.mythic.lib.api.item.NBTItem
- *  org.bukkit.entity.Entity
- *  org.bukkit.entity.LivingEntity
- *  org.bukkit.entity.Player
- *  org.bukkit.event.EventHandler
- *  org.bukkit.event.EventPriority
- *  org.bukkit.event.Listener
- *  org.bukkit.event.entity.EntityDamageByEntityEvent
- *  org.bukkit.inventory.ItemStack
- *  org.bukkit.potion.PotionEffect
- *  org.bukkit.potion.PotionEffectType
- *  org.bukkit.util.Vector
- */
 package com.nemonicorp.orbs;
 
-import com.nemonicorp.orbs.ModifierEngine;
-import com.nemonicorp.orbs.NemonicOrbPlugin;
-import com.nemonicorp.orbs.OrbListener;
 import io.lumine.mythic.lib.api.item.NBTItem;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,112 +12,138 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-public class ElementalEffectListener
-implements Listener {
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Aplica efeitos elementais quando o jogador ataca com arma que possui dano elemental.
+ * Tambem soma o dano elemental ao dano base do hit.
+ */
+public class ElementalEffectListener implements Listener {
+
     private final NemonicOrbPlugin plugin;
     private final OrbListener orbListener;
-    private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<UUID, Map<String, Long>>();
-    private static final Set<String> ELEMENTAL_STATS = Set.of("fire-damage", "ice-damage", "lightning-damage", "earth-damage", "water-damage", "wind-damage");
+
+    // Cooldown por jogador por elemento: UUID -> (elementKey -> lastProcTime)
+    private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
+
+    private static final Set<String> ELEMENTAL_STATS = Set.of(
+            "fire-damage", "ice-damage", "lightning-damage",
+            "earth-damage", "water-damage", "wind-damage"
+    );
 
     public ElementalEffectListener(NemonicOrbPlugin plugin, OrbListener orbListener) {
         this.plugin = plugin;
         this.orbListener = orbListener;
     }
 
-    @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (!this.plugin.getConfig().getBoolean("elemental-effects.enabled", true)) {
-            return;
-        }
-        Entity entity = event.getDamager();
-        if (!(entity instanceof Player)) {
-            return;
-        }
-        Player player = (Player)entity;
-        Entity entity2 = event.getEntity();
-        if (!(entity2 instanceof LivingEntity)) {
-            return;
-        }
-        LivingEntity target = (LivingEntity)entity2;
+        if (!plugin.getConfig().getBoolean("elemental-effects.enabled", true)) return;
+        if (!(event.getDamager() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
         ItemStack weapon = player.getInventory().getItemInMainHand();
-        if (weapon.getType().isAir()) {
-            return;
-        }
-        NBTItem nbt = NBTItem.get((ItemStack)weapon);
-        if (!nbt.hasTag("NEMONICORB_TIER")) {
-            return;
-        }
-        int tier = nbt.getInteger("NEMONICORB_TIER");
-        if (tier < 1) {
-            return;
-        }
-        List<ModifierEngine.RolledModifier> mods = this.orbListener.readMods(nbt);
-        if (mods.isEmpty()) {
-            return;
-        }
-        long cooldownMs = this.plugin.getConfig().getLong("elemental-effects.cooldown-ms", 2000L);
+        if (weapon.getType().isAir()) return;
+
+        NBTItem nbt = NBTItem.get(weapon);
+        if (!nbt.hasTag(OrbListener.NBT_TIER)) return;
+
+        int tier = nbt.getInteger(OrbListener.NBT_TIER);
+        if (tier < 1) return;
+
+        List<ModifierEngine.RolledModifier> mods = orbListener.readMods(nbt);
+        if (mods.isEmpty()) return;
+
+        long cooldownMs = plugin.getConfig().getLong("elemental-effects.cooldown-ms", 2000);
         long now = System.currentTimeMillis();
-        Map playerCooldowns = this.cooldowns.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap());
-        double bonusDamage = 0.0;
+        Map<String, Long> playerCooldowns = cooldowns.computeIfAbsent(
+                player.getUniqueId(), k -> new ConcurrentHashMap<>());
+
+        double bonusDamage = 0;
+
         for (ModifierEngine.RolledModifier mod : mods) {
-            for (Map.Entry<String, Double> entry : mod.stats().entrySet()) {
-                double value;
+            for (var entry : mod.stats().entrySet()) {
                 String statKey = entry.getKey();
-                if (!ELEMENTAL_STATS.contains(statKey) || (value = entry.getValue().doubleValue()) <= 0.0) continue;
+                if (!ELEMENTAL_STATS.contains(statKey)) continue;
+
+                double value = entry.getValue();
+                if (value <= 0) continue;
+
+                // Somar dano elemental ao hit
                 bonusDamage += value;
-                Long lastProc = (Long)playerCooldowns.get(statKey);
-                if (lastProc != null && now - lastProc < cooldownMs) continue;
+
+                // Verificar cooldown para efeitos
+                Long lastProc = playerCooldowns.get(statKey);
+                if (lastProc != null && (now - lastProc) < cooldownMs) continue;
                 playerCooldowns.put(statKey, now);
-                this.applyElementalEffect(statKey, value, target, player);
+
+                // Aplicar efeito elemental
+                applyElementalEffect(statKey, value, target, player);
             }
         }
-        if (bonusDamage > 0.0) {
+
+        if (bonusDamage > 0) {
             event.setDamage(event.getDamage() + bonusDamage);
         }
     }
 
-    private void applyElementalEffect(String statKey, double value, LivingEntity target, Player attacker) {
+    private void applyElementalEffect(String statKey, double value,
+                                       LivingEntity target, Player attacker) {
         switch (statKey) {
-            case "fire-damage": {
-                int ticks = (int)(value * 4.0);
+            case "fire-damage" -> {
+                // Queimadura proporcional ao dano
+                int ticks = (int) (value * 4);
                 target.setFireTicks(Math.max(target.getFireTicks(), ticks));
-                break;
             }
-            case "ice-damage": {
-                int amplifier = Math.min((int)(value / 5.0), 2);
-                int duration = (int)(value * 3.0);
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, amplifier, true, false));
-                target.setFreezeTicks(Math.min(target.getFreezeTicks() + (int)(value * 5.0), 140));
-                break;
+            case "ice-damage" -> {
+                // Slowness + freeze
+                int amplifier = Math.min((int) (value / 5), 2);
+                int duration = (int) (value * 3);
+                target.addPotionEffect(new PotionEffect(
+                        PotionEffectType.SLOWNESS, duration, amplifier, true, false));
+                target.setFreezeTicks(Math.min(
+                        target.getFreezeTicks() + (int) (value * 5), 140));
             }
-            case "lightning-damage": {
-                int duration = (int)(value * 2.0);
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, 3, true, false));
-                target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, duration / 2, 0, true, false));
-                if (!this.plugin.getConfig().getBoolean("elemental-effects.lightning.visual-lightning", true)) break;
-                target.getWorld().strikeLightningEffect(target.getLocation());
-                break;
+            case "lightning-damage" -> {
+                // Stun: slowness IV + blindness breve
+                int duration = (int) (value * 2);
+                target.addPotionEffect(new PotionEffect(
+                        PotionEffectType.SLOWNESS, duration, 3, true, false));
+                target.addPotionEffect(new PotionEffect(
+                        PotionEffectType.BLINDNESS, duration / 2, 0, true, false));
+                // Efeito visual de raio (sem dano)
+                if (plugin.getConfig().getBoolean("elemental-effects.lightning.visual-lightning", true)) {
+                    target.getWorld().strikeLightningEffect(target.getLocation());
+                }
             }
-            case "earth-damage": {
-                int duration = (int)(value * 4.0);
-                target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, duration, 0, true, false));
-                break;
+            case "earth-damage" -> {
+                // Weakness no alvo
+                int duration = (int) (value * 4);
+                target.addPotionEffect(new PotionEffect(
+                        PotionEffectType.WEAKNESS, duration, 0, true, false));
             }
-            case "water-damage": {
-                int duration = (int)(value * 3.0);
-                target.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, duration, 1, true, false));
-                double knockbackMult = this.plugin.getConfig().getDouble("elemental-effects.water.knockback-multiplier", 0.05);
-                Vector dir = target.getLocation().toVector().subtract(attacker.getLocation().toVector()).normalize();
+            case "water-damage" -> {
+                // Mining Fatigue + knockback
+                int duration = (int) (value * 3);
+                target.addPotionEffect(new PotionEffect(
+                        PotionEffectType.MINING_FATIGUE, duration, 1, true, false));
+                double knockbackMult = plugin.getConfig().getDouble(
+                        "elemental-effects.water.knockback-multiplier", 0.05);
+                Vector dir = target.getLocation().toVector()
+                        .subtract(attacker.getLocation().toVector()).normalize();
                 target.setVelocity(dir.multiply(value * knockbackMult));
-                break;
             }
-            case "wind-damage": {
-                int duration = (int)(value * 2.0);
-                target.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, duration, 0, true, false));
-                double launchMult = this.plugin.getConfig().getDouble("elemental-effects.wind.launch-multiplier", 0.03);
-                target.setVelocity(target.getVelocity().add(new Vector(0.0, value * launchMult, 0.0)));
+            case "wind-damage" -> {
+                // Levitation breve + lancamento
+                int duration = (int) (value * 2);
+                target.addPotionEffect(new PotionEffect(
+                        PotionEffectType.LEVITATION, duration, 0, true, false));
+                double launchMult = plugin.getConfig().getDouble(
+                        "elemental-effects.wind.launch-multiplier", 0.03);
+                target.setVelocity(target.getVelocity().add(
+                        new Vector(0, value * launchMult, 0)));
             }
         }
     }
 }
-
