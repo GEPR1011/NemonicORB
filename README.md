@@ -245,9 +245,9 @@ Este plugin é um **software proprietário**. É proibida a redistribuição, c�
 
 ## 📩 Contato
 
-- **Discord:** `gepr`
-- **Email:** GEPR1011@gmail.com
-- **LinkedIn:** [Guilherme Elias](https://www.linkedin.com/in/guilherme-elias-8b5b6b255/)
+- **Discord:** `gepr13`
+- **Email:** GEPRWORKOUT@gmail.com
+- **LinkedIn:** [Guilherme Elias](.)
 
 > Licenças por servidor · Suporte técnico incluso · Configuração assistida disponível
 
