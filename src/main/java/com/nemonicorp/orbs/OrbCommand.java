@@ -1,74 +1,50 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.google.gson.Gson
- *  io.lumine.mythic.lib.api.item.ItemTag
- *  io.lumine.mythic.lib.api.item.NBTItem
- *  net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem
- *  net.Indyuce.mmoitems.stat.data.DoubleData
- *  net.Indyuce.mmoitems.stat.data.type.StatData
- *  net.Indyuce.mmoitems.stat.type.DoubleStat
- *  net.Indyuce.mmoitems.stat.type.ItemStat
- *  org.bukkit.Bukkit
- *  org.bukkit.ChatColor
- *  org.bukkit.Location
- *  org.bukkit.Material
- *  org.bukkit.command.Command
- *  org.bukkit.command.CommandExecutor
- *  org.bukkit.command.CommandSender
- *  org.bukkit.command.TabCompleter
- *  org.bukkit.configuration.ConfigurationSection
- *  org.bukkit.entity.Player
- *  org.bukkit.event.HandlerList
- *  org.bukkit.event.Listener
- *  org.bukkit.inventory.ItemStack
- *  org.bukkit.plugin.Plugin
- *  org.bukkit.plugin.RegisteredListener
- */
 package com.nemonicorp.orbs;
 
 import com.google.gson.Gson;
-import com.nemonicorp.orbs.ModifierEngine;
-import com.nemonicorp.orbs.NemonicOrbPlugin;
-import com.nemonicorp.orbs.OrbListener;
-import com.nemonicorp.orbs.PublicWarpManager;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
 import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
 import net.Indyuce.mmoitems.stat.data.DoubleData;
-import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.DoubleStat;
-import net.Indyuce.mmoitems.stat.type.ItemStat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredListener;
 
-public class OrbCommand
-implements CommandExecutor,
-TabCompleter {
-    private static final List<String> SUBCOMMANDS = List.of("identify", "polish", "transmute", "augment", "regal", "alchemy", "exalt", "chance", "annul", "set-tier", "set-id", "info", "audit", "giveguide", "publicwarp", "reload");
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Comando admin /nemonicorb v2.
+ *
+ * Subcomandos:
+ *   identify <jogador>         — Pergaminho de Identificacao
+ *   polish <jogador>           — Oleo de Polimento
+ *   transmute <jogador>        — Pedra de Encantamento (Comum → Magico)
+ *   augment <jogador>          — Pedra de Reforco (+1 mod Magico)
+ *   regal <jogador>            — Runa Nobre (Magico → Raro)
+ *   alchemy <jogador>          — Pedra de Refinamento (Comum → Raro)
+ *   exalt <jogador>            — Runa de Poder (+1 mod Raro)
+ *   chance <jogador>           — Moeda da Sorte (Tier aleatorio)
+ *   annul <jogador>            — Pedra Corrosiva (Remove 1 mod)
+ *   set-tier <jogador> <0-3>   — Define tier + rola mods
+ *   set-id <jogador> <0|1>     — Define identificacao
+ *   info <jogador>             — Mostra info
+ *   reload                     — Recarrega config
+ */
+public class OrbCommand implements CommandExecutor, TabCompleter {
+
+    private static final List<String> SUBCOMMANDS = List.of(
+            "identify", "polish", "transmute", "augment", "regal",
+            "alchemy", "exalt", "chance", "annul",
+            "set-tier", "set-id", "info", "audit", "giveguide", "publicwarp", "reload"
+    );
+
     private final NemonicOrbPlugin plugin;
     private final Gson gson;
 
@@ -77,862 +53,779 @@ TabCompleter {
         this.gson = plugin.getModifierEngine().getGson();
     }
 
+    @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
-            this.sendHelp(sender);
+            sendHelp(sender);
             return true;
         }
+
         String action = args[0].toLowerCase();
+
         if (action.equals("reload")) {
-            this.plugin.reloadConfig();
-            this.plugin.getModifierEngine().load();
-            this.msg(sender, "reload-success");
+            plugin.reloadConfig();
+            plugin.getModifierEngine().load();
+            msg(sender, "reload-success");
             return true;
         }
+
         if (action.equals("audit")) {
-            this.cmdAudit(sender, args);
+            cmdAudit(sender, args);
             return true;
         }
+
         if (action.equals("publicwarp")) {
-            this.cmdPublicWarp(sender, args);
+            cmdPublicWarp(sender, args);
             return true;
         }
+
         if (args.length < 2) {
-            sender.sendMessage(this.cc("&cUso: /" + label + " <acao> <jogador>"));
+            sender.sendMessage(cc("&cUso: /" + label + " <acao> <jogador>"));
             return true;
         }
-        Player target = Bukkit.getPlayer((String)args[1]);
+
+        Player target = Bukkit.getPlayer(args[1]);
         if (target == null || !target.isOnline()) {
-            sender.sendMessage(this.cc("&cJogador nao encontrado: " + args[1]));
+            sender.sendMessage(cc("&cJogador nao encontrado: " + args[1]));
             return true;
         }
+
         if (action.equals("giveguide")) {
-            this.cmdGiveGuide(sender, target);
+            cmdGiveGuide(sender, target, args);
             return true;
         }
+
         ItemStack offHand = target.getInventory().getItemInOffHand();
         if (offHand.getType() == Material.AIR) {
-            sender.sendMessage(this.cc("&cO jogador nao tem item na mao secundaria!"));
+            sender.sendMessage(cc("&cO jogador nao tem item na mao secundaria!"));
             return true;
         }
-        NBTItem nbt = NBTItem.get((ItemStack)offHand);
+
+        NBTItem nbt = NBTItem.get(offHand);
         boolean isMMOItem = nbt.hasType();
+
         switch (action) {
-            case "identify": {
-                this.cmdIdentify(sender, target, offHand, nbt);
-                break;
-            }
-            case "polish": {
-                this.cmdPolish(sender, target, offHand, nbt, isMMOItem);
-                break;
-            }
-            case "transmute": {
-                this.cmdTier(sender, target, offHand, nbt, 0, 1, isMMOItem);
-                break;
-            }
-            case "augment": {
-                this.cmdAugment(sender, target, offHand, nbt, isMMOItem);
-                break;
-            }
-            case "regal": {
-                this.cmdTier(sender, target, offHand, nbt, 1, 2, isMMOItem);
-                break;
-            }
-            case "alchemy": {
-                this.cmdTier(sender, target, offHand, nbt, 0, 2, isMMOItem);
-                break;
-            }
-            case "exalt": {
-                this.cmdExalt(sender, target, offHand, nbt, isMMOItem);
-                break;
-            }
-            case "chance": {
-                this.cmdChance(sender, target, offHand, nbt, isMMOItem);
-                break;
-            }
-            case "annul": {
-                this.cmdAnnul(sender, target, offHand, nbt, isMMOItem);
-                break;
-            }
-            case "set-tier": {
-                this.cmdSetTier(sender, target, nbt, args);
-                break;
-            }
-            case "set-id": {
-                this.cmdSetId(sender, target, nbt, args);
-                break;
-            }
-            case "info": {
-                this.cmdInfo(sender, nbt, offHand);
-                break;
-            }
-            case "giveguide": {
-                this.cmdGiveGuide(sender, target);
-                break;
-            }
-            default: {
-                this.sendHelp(sender);
-            }
+            case "identify" -> cmdIdentify(sender, target, offHand, nbt);
+            case "polish" -> cmdPolish(sender, target, offHand, nbt, isMMOItem);
+            case "transmute" -> cmdTier(sender, target, offHand, nbt, 0, 1, isMMOItem);
+            case "augment" -> cmdAugment(sender, target, offHand, nbt, isMMOItem);
+            case "regal" -> cmdTier(sender, target, offHand, nbt, 1, 2, isMMOItem);
+            case "alchemy" -> cmdTier(sender, target, offHand, nbt, 0, 2, isMMOItem);
+            case "exalt" -> cmdExalt(sender, target, offHand, nbt, isMMOItem);
+            case "chance" -> cmdChance(sender, target, offHand, nbt, isMMOItem);
+            case "annul" -> cmdAnnul(sender, target, offHand, nbt, isMMOItem);
+            case "set-tier" -> cmdSetTier(sender, target, nbt, args);
+            case "set-id" -> cmdSetId(sender, target, nbt, args);
+            case "info" -> cmdInfo(sender, nbt, offHand);
+            case "giveguide" -> cmdGiveGuide(sender, target, args);
+            default -> sendHelp(sender);
         }
+
         return true;
     }
 
+    // ── Subcomandos ──
+
     private void cmdIdentify(CommandSender sender, Player target, ItemStack item, NBTItem nbt) {
-        nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
+        nbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
         ItemStack updated = nbt.toItem();
-        OrbListener listener = this.getListener();
-        if (listener != null) {
-            listener.updateItemDisplay(updated, NBTItem.get((ItemStack)updated));
-        }
+        OrbListener listener = getListener();
+        if (listener != null) listener.updateItemDisplay(updated, NBTItem.get(updated));
         target.getInventory().setItemInOffHand(updated);
-        sender.sendMessage(this.cc("&aItem identificado para " + target.getName() + "."));
+        sender.sendMessage(cc("&aItem identificado para " + target.getName() + "."));
     }
 
     private void cmdPolish(CommandSender sender, Player target, ItemStack item, NBTItem nbt, boolean isMMOItem) {
-        ItemStack result;
-        int current;
-        int maxPolish = this.plugin.getConfig().getInt("max-polish", 5);
-        int n = current = nbt.hasTag("NEMONICORB_POLISH") ? nbt.getInteger("NEMONICORB_POLISH") : 0;
+        int maxPolish = plugin.getConfig().getInt("max-polish", 5);
+        int current = nbt.hasTag(OrbListener.NBT_POLISH) ? nbt.getInteger(OrbListener.NBT_POLISH) : 0;
+
         if (current >= maxPolish) {
-            sender.sendMessage(this.cc("&cItem ja polido ao maximo (" + maxPolish + ")."));
+            sender.sendMessage(cc("&cItem ja polido ao maximo (" + maxPolish + ")."));
             return;
         }
+
+        ItemStack result;
         if (isMMOItem) {
-            ConfigurationSection polishSec = this.plugin.getConfig().getConfigurationSection("polish-percent");
-            if (polishSec == null) {
-                return;
-            }
+            var polishSec = plugin.getConfig().getConfigurationSection("polish-percent");
+            if (polishSec == null) return;
+
             LiveMMOItem live = new LiveMMOItem(item);
-            ModifierEngine engine = this.plugin.getModifierEngine();
+            ModifierEngine engine = plugin.getModifierEngine();
             int count = 0;
+
             for (String statId : polishSec.getKeys(false)) {
-                DoubleData dd;
-                StatData data;
                 double pct = polishSec.getDouble(statId) / 100.0;
                 DoubleStat stat = engine.resolveStat(statId);
-                if (stat == null || !((data = live.getData((ItemStat)stat)) instanceof DoubleData) || (dd = (DoubleData)data).getValue() == 0.0) continue;
-                live.setData((ItemStat)stat, (StatData)new DoubleData((double)Math.round(dd.getValue() * (1.0 + pct) * 100.0) / 100.0));
-                ++count;
+                if (stat == null) continue;
+                var data = live.getData(stat);
+                if (data instanceof DoubleData dd && dd.getValue() != 0) {
+                    live.setData(stat, new DoubleData(Math.round(dd.getValue() * (1.0 + pct) * 100.0) / 100.0));
+                    count++;
+                }
             }
+
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            this.preserveTags(nbt, builtNbt);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_POLISH", (Object)(current + 1))});
+            NBTItem builtNbt = NBTItem.get(built);
+            preserveTags(nbt, builtNbt);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_POLISH, current + 1));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_POLISH", (Object)(current + 1))});
+            nbt.addTag(new ItemTag(OrbListener.NBT_POLISH, current + 1));
             result = nbt.toItem();
         }
-        OrbListener listener = this.getListener();
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        OrbListener listener = getListener();
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        sender.sendMessage(this.cc("&aPolimento aplicado. (" + (current + 1) + "/" + maxPolish + ")"));
+        sender.sendMessage(cc("&aPolimento aplicado. (" + (current + 1) + "/" + maxPolish + ")"));
     }
 
-    private void cmdTier(CommandSender sender, Player target, ItemStack item, NBTItem nbt, int requiredTier, int newTier, boolean isMMOItem) {
-        ItemStack result;
-        int maxMods;
-        int modCount;
-        int currentTier;
-        int n = currentTier = nbt.hasTag("NEMONICORB_TIER") ? nbt.getInteger("NEMONICORB_TIER") : 0;
+    private void cmdTier(CommandSender sender, Player target, ItemStack item, NBTItem nbt,
+                         int requiredTier, int newTier, boolean isMMOItem) {
+        int currentTier = nbt.hasTag(OrbListener.NBT_TIER) ? nbt.getInteger(OrbListener.NBT_TIER) : 0;
         if (currentTier != requiredTier) {
-            sender.sendMessage(this.cc("&cItem precisa ser tier " + requiredTier + ". Atual: " + currentTier));
+            sender.sendMessage(cc("&cItem precisa ser tier " + requiredTier + ". Atual: " + currentTier));
             return;
         }
-        String category = isMMOItem ? this.resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE")) : this.resolveCategoryFromMaterial(item.getType());
-        if (category == null) {
-            sender.sendMessage(this.cc("&cTipo nao suportado."));
-            return;
-        }
-        ModifierEngine engine = this.plugin.getModifierEngine();
-        int itemLevel = this.getItemLevel(nbt);
-        if (newTier == 1) {
-            modCount = new Random().nextInt(2) + 1;
-            maxMods = 2;
+
+        String category;
+        if (isMMOItem) {
+            category = resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE"));
         } else {
-            modCount = new Random().nextInt(4) + 3;
-            maxMods = 6;
+            category = resolveCategoryFromMaterial(item.getType());
         }
+
+        if (category == null) {
+            sender.sendMessage(cc("&cTipo nao suportado."));
+            return;
+        }
+
+        ModifierEngine engine = plugin.getModifierEngine();
+        int itemLevel = getItemLevel(nbt);
+        int modCount, maxMods;
+
+        if (newTier == 1) {
+            modCount = new Random().nextInt(2) + 1; maxMods = 2;
+        } else {
+            modCount = new Random().nextInt(4) + 3; maxMods = 6;
+        }
+
         List<ModifierEngine.RolledModifier> mods = engine.rollForTier(category, modCount, itemLevel, maxMods);
+
+        ItemStack result;
         if (isMMOItem) {
             LiveMMOItem live = new LiveMMOItem(item);
-            for (ModifierEngine.RolledModifier m : mods) {
-                for (Map.Entry<String, Double> entry : m.stats().entrySet()) {
-                    double d;
+            for (var m : mods) {
+                for (var entry : m.stats().entrySet()) {
                     DoubleStat stat = engine.resolveStat(entry.getKey());
                     if (stat == null) continue;
-                    StatData data = live.getData((ItemStat)stat);
-                    if (data instanceof DoubleData) {
-                        DoubleData dd = (DoubleData)data;
-                        d = dd.getValue();
-                    } else {
-                        d = 0.0;
-                    }
-                    double cur = d;
-                    live.setData((ItemStat)stat, (StatData)new DoubleData(cur + entry.getValue()));
+                    var data = live.getData(stat);
+                    double cur = (data instanceof DoubleData dd) ? dd.getValue() : 0;
+                    live.setData(stat, new DoubleData(cur + entry.getValue()));
                 }
             }
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)newTier)});
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
-            if (nbt.hasTag("NEMONICORB_POLISH")) {
-                builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_POLISH", (Object)nbt.getInteger("NEMONICORB_POLISH"))});
-            }
+            NBTItem builtNbt = NBTItem.get(built);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_TIER, newTier));
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
+            if (nbt.hasTag(OrbListener.NBT_POLISH))
+                builtNbt.addTag(new ItemTag(OrbListener.NBT_POLISH, nbt.getInteger(OrbListener.NBT_POLISH)));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)newTier)});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
+            nbt.addTag(new ItemTag(OrbListener.NBT_TIER, newTier));
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
+            nbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
             result = nbt.toItem();
         }
-        OrbListener listener = this.getListener();
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        OrbListener listener = getListener();
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        sender.sendMessage(this.cc("&aTier alterado para " + newTier + ". " + mods.size() + " mods adicionados."));
+        sender.sendMessage(cc("&aTier alterado para " + newTier + ". " + mods.size() + " mods adicionados."));
     }
 
     private void cmdAugment(CommandSender sender, Player target, ItemStack item, NBTItem nbt, boolean isMMOItem) {
-        ItemStack result;
-        List<Object> mods;
-        String category;
-        int tier;
-        if (nbt.hasTag("NEMONICORB_POLISHED") && nbt.getInteger("NEMONICORB_POLISHED") == 1) {
-            sender.sendMessage(this.cc("&cItem polido! Mods travados. Apenas upgrade de tier permitido."));
+        if (nbt.hasTag(OrbListener.NBT_POLISHED) && nbt.getInteger(OrbListener.NBT_POLISHED) == 1) {
+            sender.sendMessage(cc("&cItem polido! Mods travados. Apenas upgrade de tier permitido."));
             return;
         }
-        int n = tier = nbt.hasTag("NEMONICORB_TIER") ? nbt.getInteger("NEMONICORB_TIER") : 0;
+        int tier = nbt.hasTag(OrbListener.NBT_TIER) ? nbt.getInteger(OrbListener.NBT_TIER) : 0;
         if (tier != 1) {
-            sender.sendMessage(this.cc("&cItem precisa ser Magico (tier 1)."));
+            sender.sendMessage(cc("&cItem precisa ser Magico (tier 1)."));
             return;
         }
-        String string = category = isMMOItem ? this.resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE")) : this.resolveCategoryFromMaterial(item.getType());
-        if (category == null) {
-            sender.sendMessage(this.cc("&cTipo nao suportado."));
-            return;
-        }
-        OrbListener listener = this.getListener();
-        List<Object> list = mods = listener != null ? listener.readMods(nbt) : new ArrayList();
+
+        String category = isMMOItem ? resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE"))
+                : resolveCategoryFromMaterial(item.getType());
+        if (category == null) { sender.sendMessage(cc("&cTipo nao suportado.")); return; }
+
+        OrbListener listener = getListener();
+        List<ModifierEngine.RolledModifier> mods = listener != null ? listener.readMods(nbt) : new ArrayList<>();
         if (mods.size() >= 2) {
-            sender.sendMessage(this.cc("&cItem Magico ja tem 2 mods."));
+            sender.sendMessage(cc("&cItem Magico ja tem 2 mods."));
             return;
         }
-        ModifierEngine engine = this.plugin.getModifierEngine();
-        int itemLevel = this.getItemLevel(nbt);
-        Set<String> used = mods.stream().map(ModifierEngine.RolledModifier::category).filter(Objects::nonNull).collect(Collectors.toSet());
-        ModifierEngine.RolledModifier newMod = engine.rollFromGroup("nemonicorp_" + category + "_positive", itemLevel, used, false);
-        if (newMod == null) {
-            sender.sendMessage(this.cc("&cNao conseguiu rolar mod."));
-            return;
-        }
+
+        ModifierEngine engine = plugin.getModifierEngine();
+        int itemLevel = getItemLevel(nbt);
+        Set<String> used = mods.stream().map(ModifierEngine.RolledModifier::category)
+                .filter(Objects::nonNull).collect(Collectors.toSet());
+
+        ModifierEngine.RolledModifier newMod = engine.rollFromGroup(
+                "nemonicorp_" + category + "_positive", itemLevel, used, false);
+        if (newMod == null) { sender.sendMessage(cc("&cNao conseguiu rolar mod.")); return; }
+
         mods.add(newMod);
+
+        ItemStack result;
         if (isMMOItem) {
             LiveMMOItem live = new LiveMMOItem(item);
-            for (Map.Entry<String, Double> entry : newMod.stats().entrySet()) {
-                double d;
+            for (var entry : newMod.stats().entrySet()) {
                 DoubleStat stat = engine.resolveStat(entry.getKey());
                 if (stat == null) continue;
-                StatData data = live.getData((ItemStat)stat);
-                if (data instanceof DoubleData) {
-                    DoubleData dd = (DoubleData)data;
-                    d = dd.getValue();
-                } else {
-                    d = 0.0;
-                }
-                double cur = d;
-                live.setData((ItemStat)stat, (StatData)new DoubleData(cur + entry.getValue()));
+                var data = live.getData(stat);
+                double cur = (data instanceof DoubleData dd) ? dd.getValue() : 0;
+                live.setData(stat, new DoubleData(cur + entry.getValue()));
             }
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            this.preserveTags(nbt, builtNbt);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
+            NBTItem builtNbt = NBTItem.get(built);
+            preserveTags(nbt, builtNbt);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
             result = nbt.toItem();
         }
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        sender.sendMessage(this.cc("&aMod adicionado: " + newMod.id()));
+        sender.sendMessage(cc("&aMod adicionado: " + newMod.id()));
     }
 
     private void cmdExalt(CommandSender sender, Player target, ItemStack item, NBTItem nbt, boolean isMMOItem) {
-        ItemStack result;
-        List<Object> mods;
-        String category;
-        int tier;
-        if (nbt.hasTag("NEMONICORB_POLISHED") && nbt.getInteger("NEMONICORB_POLISHED") == 1) {
-            sender.sendMessage(this.cc("&cItem polido! Mods travados. Apenas upgrade de tier permitido."));
+        if (nbt.hasTag(OrbListener.NBT_POLISHED) && nbt.getInteger(OrbListener.NBT_POLISHED) == 1) {
+            sender.sendMessage(cc("&cItem polido! Mods travados. Apenas upgrade de tier permitido."));
             return;
         }
-        int n = tier = nbt.hasTag("NEMONICORB_TIER") ? nbt.getInteger("NEMONICORB_TIER") : 0;
+        int tier = nbt.hasTag(OrbListener.NBT_TIER) ? nbt.getInteger(OrbListener.NBT_TIER) : 0;
         if (tier != 2) {
-            sender.sendMessage(this.cc("&cItem precisa ser Raro (tier 2)."));
+            sender.sendMessage(cc("&cItem precisa ser Raro (tier 2)."));
             return;
         }
-        String string = category = isMMOItem ? this.resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE")) : this.resolveCategoryFromMaterial(item.getType());
-        if (category == null) {
-            sender.sendMessage(this.cc("&cTipo nao suportado."));
-            return;
-        }
-        OrbListener listener = this.getListener();
-        List<Object> list = mods = listener != null ? listener.readMods(nbt) : new ArrayList();
+
+        String category = isMMOItem ? resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE"))
+                : resolveCategoryFromMaterial(item.getType());
+        if (category == null) { sender.sendMessage(cc("&cTipo nao suportado.")); return; }
+
+        OrbListener listener = getListener();
+        List<ModifierEngine.RolledModifier> mods = listener != null ? listener.readMods(nbt) : new ArrayList<>();
         if (mods.size() >= 6) {
-            sender.sendMessage(this.cc("&cItem ja tem 6 mods (maximo)."));
+            sender.sendMessage(cc("&cItem ja tem 6 mods (maximo)."));
             return;
         }
-        ModifierEngine engine = this.plugin.getModifierEngine();
-        int itemLevel = this.getItemLevel(nbt);
-        Set<String> used = mods.stream().map(ModifierEngine.RolledModifier::category).filter(Objects::nonNull).collect(Collectors.toSet());
-        ModifierEngine.RolledModifier newMod = engine.rollFromGroup("nemonicorp_" + category + "_positive", itemLevel, used, false);
-        if (newMod == null) {
-            sender.sendMessage(this.cc("&cNao conseguiu rolar mod."));
-            return;
-        }
+
+        ModifierEngine engine = plugin.getModifierEngine();
+        int itemLevel = getItemLevel(nbt);
+        Set<String> used = mods.stream().map(ModifierEngine.RolledModifier::category)
+                .filter(Objects::nonNull).collect(Collectors.toSet());
+
+        ModifierEngine.RolledModifier newMod = engine.rollFromGroup(
+                "nemonicorp_" + category + "_positive", itemLevel, used, false);
+        if (newMod == null) { sender.sendMessage(cc("&cNao conseguiu rolar mod.")); return; }
+
         mods.add(newMod);
+
+        ItemStack result;
         if (isMMOItem) {
             LiveMMOItem live = new LiveMMOItem(item);
-            for (Map.Entry<String, Double> entry : newMod.stats().entrySet()) {
-                double d;
+            for (var entry : newMod.stats().entrySet()) {
                 DoubleStat stat = engine.resolveStat(entry.getKey());
                 if (stat == null) continue;
-                StatData data = live.getData((ItemStat)stat);
-                if (data instanceof DoubleData) {
-                    DoubleData dd = (DoubleData)data;
-                    d = dd.getValue();
-                } else {
-                    d = 0.0;
-                }
-                double cur = d;
-                live.setData((ItemStat)stat, (StatData)new DoubleData(cur + entry.getValue()));
+                var data = live.getData(stat);
+                double cur = (data instanceof DoubleData dd) ? dd.getValue() : 0;
+                live.setData(stat, new DoubleData(cur + entry.getValue()));
             }
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            this.preserveTags(nbt, builtNbt);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
+            NBTItem builtNbt = NBTItem.get(built);
+            preserveTags(nbt, builtNbt);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
             result = nbt.toItem();
         }
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        sender.sendMessage(this.cc("&aMod adicionado: " + newMod.id()));
+        sender.sendMessage(cc("&aMod adicionado: " + newMod.id()));
     }
 
     private void cmdChance(CommandSender sender, Player target, ItemStack item, NBTItem nbt, boolean isMMOItem) {
-        ItemStack result;
-        int maxMods;
-        int modCount;
-        int newTier;
-        String category;
-        int tier;
-        int n = tier = nbt.hasTag("NEMONICORB_TIER") ? nbt.getInteger("NEMONICORB_TIER") : 0;
+        int tier = nbt.hasTag(OrbListener.NBT_TIER) ? nbt.getInteger(OrbListener.NBT_TIER) : 0;
         if (tier != 0) {
-            sender.sendMessage(this.cc("&cItem precisa ser Comum (tier 0)."));
+            sender.sendMessage(cc("&cItem precisa ser Comum (tier 0)."));
             return;
         }
-        String string = category = isMMOItem ? this.resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE")) : this.resolveCategoryFromMaterial(item.getType());
-        if (category == null) {
-            sender.sendMessage(this.cc("&cTipo nao suportado."));
-            return;
-        }
+
+        String category = isMMOItem ? resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE"))
+                : resolveCategoryFromMaterial(item.getType());
+        if (category == null) { sender.sendMessage(cc("&cTipo nao suportado.")); return; }
+
         int roll = new Random().nextInt(100);
-        int magic = this.plugin.getConfig().getInt("chance-orb.magic", 70);
-        int rare = this.plugin.getConfig().getInt("chance-orb.rare", 25);
-        if (roll < magic) {
-            newTier = 1;
-            modCount = new Random().nextInt(2) + 1;
-            maxMods = 2;
-        } else if (roll < magic + rare) {
-            newTier = 2;
-            modCount = new Random().nextInt(4) + 3;
-            maxMods = 6;
+        int newTier;
+        int modCount;
+        int maxMods;
+        int magic = plugin.getConfig().getInt("chance-orb.magic", 70);
+        int rare = plugin.getConfig().getInt("chance-orb.rare", 25);
+
+        if (roll < magic) { newTier = 1; modCount = new Random().nextInt(2) + 1; maxMods = 2; }
+        else if (roll < magic + rare) { newTier = 2; modCount = new Random().nextInt(4) + 3; maxMods = 6; }
+        else { newTier = 3; modCount = 6; maxMods = 6; }
+
+        ModifierEngine engine = plugin.getModifierEngine();
+        int itemLevel = getItemLevel(nbt);
+        List<ModifierEngine.RolledModifier> mods;
+        if (newTier == 3) {
+            mods = engine.rollForUnique(category, itemLevel);
         } else {
-            newTier = 3;
-            modCount = 6;
-            maxMods = 6;
+            mods = engine.rollForTier(category, modCount, itemLevel, maxMods, newTier);
         }
-        ModifierEngine engine = this.plugin.getModifierEngine();
-        int itemLevel = this.getItemLevel(nbt);
-        List<ModifierEngine.RolledModifier> mods = newTier == 3 ? engine.rollForUnique(category, itemLevel) : engine.rollForTier(category, modCount, itemLevel, maxMods, newTier);
+
+        ItemStack result;
         if (isMMOItem) {
             LiveMMOItem live = new LiveMMOItem(item);
-            for (ModifierEngine.RolledModifier m : mods) {
-                for (Map.Entry<String, Double> entry : m.stats().entrySet()) {
-                    double d;
+            for (var m : mods) {
+                for (var entry : m.stats().entrySet()) {
                     DoubleStat stat = engine.resolveStat(entry.getKey());
                     if (stat == null) continue;
-                    StatData data = live.getData((ItemStat)stat);
-                    if (data instanceof DoubleData) {
-                        DoubleData dd = (DoubleData)data;
-                        d = dd.getValue();
-                    } else {
-                        d = 0.0;
-                    }
-                    double cur = d;
-                    live.setData((ItemStat)stat, (StatData)new DoubleData(cur + entry.getValue()));
+                    var data = live.getData(stat);
+                    double cur = (data instanceof DoubleData dd) ? dd.getValue() : 0;
+                    live.setData(stat, new DoubleData(cur + entry.getValue()));
                 }
             }
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)newTier)});
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
-            if (nbt.hasTag("NEMONICORB_POLISH")) {
-                builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_POLISH", (Object)nbt.getInteger("NEMONICORB_POLISH"))});
-            }
+            NBTItem builtNbt = NBTItem.get(built);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_TIER, newTier));
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
+            if (nbt.hasTag(OrbListener.NBT_POLISH))
+                builtNbt.addTag(new ItemTag(OrbListener.NBT_POLISH, nbt.getInteger(OrbListener.NBT_POLISH)));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)newTier)});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
+            nbt.addTag(new ItemTag(OrbListener.NBT_TIER, newTier));
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
+            nbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
             result = nbt.toItem();
         }
-        OrbListener listener = this.getListener();
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        OrbListener listener = getListener();
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        Object tierName = listener != null ? listener.getTierName(newTier) : "Tier " + newTier;
-        sender.sendMessage(this.cc("&aMoeda da Sorte aplicada. Novo tier: " + (String)tierName));
+
+        String tierName = listener != null ? listener.getTierName(newTier) : "Tier " + newTier;
+        sender.sendMessage(cc("&aMoeda da Sorte aplicada. Novo tier: " + tierName));
     }
 
     private void cmdAnnul(CommandSender sender, Player target, ItemStack item, NBTItem nbt, boolean isMMOItem) {
-        ItemStack result;
-        List<Object> mods;
-        if (nbt.hasTag("NEMONICORB_POLISHED") && nbt.getInteger("NEMONICORB_POLISHED") == 1) {
-            sender.sendMessage(this.cc("&cItem polido! Mods travados. Apenas upgrade de tier permitido."));
+        if (nbt.hasTag(OrbListener.NBT_POLISHED) && nbt.getInteger(OrbListener.NBT_POLISHED) == 1) {
+            sender.sendMessage(cc("&cItem polido! Mods travados. Apenas upgrade de tier permitido."));
             return;
         }
-        OrbListener listener = this.getListener();
-        List<Object> list = mods = listener != null ? listener.readMods(nbt) : new ArrayList();
+        OrbListener listener = getListener();
+        List<ModifierEngine.RolledModifier> mods = listener != null ? listener.readMods(nbt) : new ArrayList<>();
         if (mods.isEmpty()) {
-            sender.sendMessage(this.cc("&cItem nao tem mods."));
+            sender.sendMessage(cc("&cItem nao tem mods."));
             return;
         }
+
         int idx = new Random().nextInt(mods.size());
-        ModifierEngine.RolledModifier removed = (ModifierEngine.RolledModifier)mods.get(idx);
+        ModifierEngine.RolledModifier removed = mods.get(idx);
+
         mods.remove(idx);
+
+        ItemStack result;
         if (isMMOItem) {
             LiveMMOItem live = new LiveMMOItem(item);
-            ModifierEngine engine = this.plugin.getModifierEngine();
-            for (Map.Entry<String, Double> entry : removed.stats().entrySet()) {
-                double d;
+            ModifierEngine engine = plugin.getModifierEngine();
+            for (var entry : removed.stats().entrySet()) {
                 DoubleStat stat = engine.resolveStat(entry.getKey());
                 if (stat == null) continue;
-                StatData data = live.getData((ItemStat)stat);
-                if (data instanceof DoubleData) {
-                    DoubleData dd = (DoubleData)data;
-                    d = dd.getValue();
-                } else {
-                    d = 0.0;
-                }
-                double cur = d;
-                live.setData((ItemStat)stat, (StatData)new DoubleData(cur - entry.getValue()));
+                var data = live.getData(stat);
+                double cur = (data instanceof DoubleData dd) ? dd.getValue() : 0;
+                live.setData(stat, new DoubleData(cur - entry.getValue()));
             }
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            this.preserveTags(nbt, builtNbt);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
+            NBTItem builtNbt = NBTItem.get(built);
+            preserveTags(nbt, builtNbt);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
             result = nbt.toItem();
         }
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        sender.sendMessage(this.cc("&aMod removido: " + removed.id()));
+        sender.sendMessage(cc("&aMod removido: " + removed.id()));
     }
 
     private void cmdSetTier(CommandSender sender, Player target, NBTItem nbt, String[] args) {
-        ItemStack result;
-        List<ModifierEngine.RolledModifier> mods;
-        String category;
-        int newTier;
         if (args.length < 3) {
-            sender.sendMessage(this.cc("&cUso: /nemonicorb set-tier <jogador> <0-3>"));
+            sender.sendMessage(cc("&cUso: /nemonicorb set-tier <jogador> <0-3>"));
             return;
         }
-        try {
-            newTier = Integer.parseInt(args[2]);
-        }
-        catch (NumberFormatException e) {
-            sender.sendMessage(this.cc("&cTier invalido. Use 0-3."));
-            return;
+        int newTier;
+        try { newTier = Integer.parseInt(args[2]); } catch (NumberFormatException e) {
+            sender.sendMessage(cc("&cTier invalido. Use 0-3.")); return;
         }
         if (newTier < 0 || newTier > 3) {
-            sender.sendMessage(this.cc("&cTier invalido. Use 0-3."));
-            return;
+            sender.sendMessage(cc("&cTier invalido. Use 0-3.")); return;
         }
+
         ItemStack item = target.getInventory().getItemInOffHand();
         boolean isMMOItem = nbt.hasType();
+
         if (newTier == 0) {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)0)});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)"[]")});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
+            // Tier 0 (Comum): remove mods
+            nbt.addTag(new ItemTag(OrbListener.NBT_TIER, 0));
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, "[]"));
+            nbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
             ItemStack updated = nbt.toItem();
-            OrbListener listener = this.getListener();
-            if (listener != null) {
-                listener.updateItemDisplay(updated, NBTItem.get((ItemStack)updated));
-            }
+            OrbListener listener = getListener();
+            if (listener != null) listener.updateItemDisplay(updated, NBTItem.get(updated));
             target.getInventory().setItemInOffHand(updated);
-            sender.sendMessage(this.cc("&aTier definido para Comum (0). Mods removidos."));
+            sender.sendMessage(cc("&aTier definido para Comum (0). Mods removidos."));
             return;
         }
-        String string = category = isMMOItem ? this.resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE")) : this.resolveCategoryFromMaterial(item.getType());
+
+        // Tiers 1-3: rolar modificadores
+        String category = isMMOItem ? resolveCategory(nbt.getString("MMOITEMS_ITEM_TYPE"))
+                : resolveCategoryFromMaterial(item.getType());
         if (category == null) {
-            sender.sendMessage(this.cc("&cTipo nao suportado para rolar mods."));
+            sender.sendMessage(cc("&cTipo nao suportado para rolar mods."));
             return;
         }
-        ModifierEngine engine = this.plugin.getModifierEngine();
-        int itemLevel = this.getItemLevel(nbt);
+
+        ModifierEngine engine = plugin.getModifierEngine();
+        int itemLevel = getItemLevel(nbt);
+        List<ModifierEngine.RolledModifier> mods;
+
         if (newTier == 3) {
+            // Unico: 6 mods, valores dobrados, 2 mods buffados x2
             mods = engine.rollForUnique(category, itemLevel);
         } else if (newTier == 2) {
-            modCount = new Random().nextInt(4) + 3;
+            int modCount = new Random().nextInt(4) + 3; // 3-6
             mods = engine.rollForTier(category, modCount, itemLevel, 6, newTier);
         } else {
-            modCount = new Random().nextInt(2) + 1;
+            int modCount = new Random().nextInt(2) + 1; // 1-2
             mods = engine.rollForTier(category, modCount, itemLevel, 2, newTier);
         }
+
+        ItemStack result;
         if (isMMOItem) {
             LiveMMOItem live = new LiveMMOItem(item);
-            for (ModifierEngine.RolledModifier m : mods) {
-                for (Map.Entry<String, Double> entry : m.stats().entrySet()) {
-                    double d;
+            for (var m : mods) {
+                for (var entry : m.stats().entrySet()) {
                     DoubleStat stat = engine.resolveStat(entry.getKey());
                     if (stat == null) continue;
-                    StatData data = live.getData((ItemStat)stat);
-                    if (data instanceof DoubleData) {
-                        DoubleData dd = (DoubleData)data;
-                        d = dd.getValue();
-                    } else {
-                        d = 0.0;
-                    }
-                    double cur = d;
-                    live.setData((ItemStat)stat, (StatData)new DoubleData(cur + entry.getValue()));
+                    var data = live.getData(stat);
+                    double cur = (data instanceof DoubleData dd) ? dd.getValue() : 0;
+                    live.setData(stat, new DoubleData(cur + entry.getValue()));
                 }
             }
             ItemStack built = live.newBuilder().build();
-            NBTItem builtNbt = NBTItem.get((ItemStack)built);
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)newTier)});
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
-            builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
-            if (nbt.hasTag("NEMONICORB_POLISH")) {
-                builtNbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_POLISH", (Object)nbt.getInteger("NEMONICORB_POLISH"))});
-            }
+            NBTItem builtNbt = NBTItem.get(built);
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_TIER, newTier));
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
+            builtNbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
+            if (nbt.hasTag(OrbListener.NBT_POLISH))
+                builtNbt.addTag(new ItemTag(OrbListener.NBT_POLISH, nbt.getInteger(OrbListener.NBT_POLISH)));
             result = builtNbt.toItem();
         } else {
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)newTier)});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)this.gson.toJson(mods))});
-            nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)1)});
+            nbt.addTag(new ItemTag(OrbListener.NBT_TIER, newTier));
+            nbt.addTag(new ItemTag(OrbListener.NBT_MODS, gson.toJson(mods)));
+            nbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, 1));
             result = nbt.toItem();
         }
-        OrbListener listener = this.getListener();
-        if (listener != null) {
-            listener.updateItemDisplay(result, NBTItem.get((ItemStack)result));
-        }
+
+        OrbListener listener = getListener();
+        if (listener != null) listener.updateItemDisplay(result, NBTItem.get(result));
         target.getInventory().setItemInOffHand(result);
-        Object tierName = listener != null ? listener.getTierName(newTier) : "Tier " + newTier;
-        sender.sendMessage(this.cc("&aTier definido para " + (String)tierName + " (" + newTier + "). " + mods.size() + " mods rolados."));
+
+        String tierName = listener != null ? listener.getTierName(newTier) : "Tier " + newTier;
+        sender.sendMessage(cc("&aTier definido para " + tierName + " (" + newTier + "). " + mods.size() + " mods rolados."));
     }
 
     private void cmdSetId(CommandSender sender, Player target, NBTItem nbt, String[] args) {
-        int val;
         if (args.length < 3) {
-            sender.sendMessage(this.cc("&cUso: /nemonicorb set-id <jogador> <0|1>"));
+            sender.sendMessage(cc("&cUso: /nemonicorb set-id <jogador> <0|1>"));
             return;
         }
-        try {
-            val = Integer.parseInt(args[2]);
-        }
-        catch (NumberFormatException e) {
-            sender.sendMessage(this.cc("&cValor invalido. Use 0 ou 1."));
-            return;
+        int val;
+        try { val = Integer.parseInt(args[2]); } catch (NumberFormatException e) {
+            sender.sendMessage(cc("&cValor invalido. Use 0 ou 1.")); return;
         }
         if (val != 0 && val != 1) {
-            sender.sendMessage(this.cc("&cValor invalido. Use 0 (nao identificado) ou 1 (identificado)."));
-            return;
+            sender.sendMessage(cc("&cValor invalido. Use 0 (nao identificado) ou 1 (identificado).")); return;
         }
-        nbt.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)val)});
+
+        nbt.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, val));
         ItemStack updated = nbt.toItem();
-        OrbListener listener = this.getListener();
-        if (listener != null) {
-            listener.updateItemDisplay(updated, NBTItem.get((ItemStack)updated));
-        }
+        OrbListener listener = getListener();
+        if (listener != null) listener.updateItemDisplay(updated, NBTItem.get(updated));
         target.getInventory().setItemInOffHand(updated);
+
         String status = val == 1 ? "identificado" : "nao identificado";
-        sender.sendMessage(this.cc("&aItem marcado como " + status + "."));
+        sender.sendMessage(cc("&aItem marcado como " + status + "."));
     }
 
     private void cmdInfo(CommandSender sender, NBTItem nbt, ItemStack item) {
-        int tier = nbt.hasTag("NEMONICORB_TIER") ? nbt.getInteger("NEMONICORB_TIER") : 0;
-        boolean identified = !nbt.hasTag("NEMONICORB_IDENTIFIED") || nbt.getInteger("NEMONICORB_IDENTIFIED") == 1;
-        int polish = nbt.hasTag("NEMONICORB_POLISH") ? nbt.getInteger("NEMONICORB_POLISH") : 0;
-        int maxPolish = this.plugin.getConfig().getInt("max-polish", 5);
-        OrbListener listener = this.getListener();
-        List<Object> mods = listener != null ? listener.readMods(nbt) : new ArrayList();
+        int tier = nbt.hasTag(OrbListener.NBT_TIER) ? nbt.getInteger(OrbListener.NBT_TIER) : 0;
+        boolean identified = !nbt.hasTag(OrbListener.NBT_IDENTIFIED) || nbt.getInteger(OrbListener.NBT_IDENTIFIED) == 1;
+        int polish = nbt.hasTag(OrbListener.NBT_POLISH) ? nbt.getInteger(OrbListener.NBT_POLISH) : 0;
+        int maxPolish = plugin.getConfig().getInt("max-polish", 5);
+
+        OrbListener listener = getListener();
+        List<ModifierEngine.RolledModifier> mods = listener != null ? listener.readMods(nbt) : new ArrayList<>();
+
         boolean isMMOItem = nbt.hasType();
         String type = isMMOItem ? nbt.getString("MMOITEMS_ITEM_TYPE") : item.getType().name();
         String id = isMMOItem ? nbt.getString("MMOITEMS_ITEM_ID") : "VANILLA";
-        String category = isMMOItem ? this.resolveCategory(type) : this.resolveCategoryFromMaterial(item.getType());
-        Object tierName = listener != null ? listener.getTierName(tier) : "Tier " + tier;
+        String category = isMMOItem ? resolveCategory(type) : resolveCategoryFromMaterial(item.getType());
+        String tierName = listener != null ? listener.getTierName(tier) : "Tier " + tier;
         String tierColor = listener != null ? listener.getTierColor(tier) : "&7";
-        sender.sendMessage(this.cc("&6=== NemonicOrb v2.1 Info ==="));
-        sender.sendMessage(this.cc("&7Item: &e" + type + " / " + id + (isMMOItem ? "" : " &8(vanilla)")));
-        sender.sendMessage(this.cc("&7Tier: " + tierColor + (String)tierName + " &8(" + tier + ")"));
-        sender.sendMessage(this.cc("&7Identificado: " + (identified ? "&aSim" : "&cNao")));
-        sender.sendMessage(this.cc("&7Polimento: &e" + polish + "&7/&e" + maxPolish));
-        sender.sendMessage(this.cc("&7Categoria: &e" + (category != null ? category : "N/A")));
-        sender.sendMessage(this.cc("&7Mods: &e" + mods.size()));
+
+        sender.sendMessage(cc("&6=== NemonicOrb v2.1 Info ==="));
+        sender.sendMessage(cc("&7Item: &e" + type + " / " + id + (isMMOItem ? "" : " &8(vanilla)")));
+        sender.sendMessage(cc("&7Tier: " + tierColor + tierName + " &8(" + tier + ")"));
+        sender.sendMessage(cc("&7Identificado: " + (identified ? "&aSim" : "&cNao")));
+        sender.sendMessage(cc("&7Polimento: &e" + polish + "&7/&e" + maxPolish));
+        sender.sendMessage(cc("&7Categoria: &e" + (category != null ? category : "N/A")));
+
+        sender.sendMessage(cc("&7Mods: &e" + mods.size()));
+
         if (mods.isEmpty()) {
-            sender.sendMessage(this.cc("&7  (nenhum mod)"));
+            sender.sendMessage(cc("&7  (nenhum mod)"));
         } else {
-            for (ModifierEngine.RolledModifier rolledModifier : mods) {
+            for (var mod : mods) {
                 StringBuilder sb = new StringBuilder();
-                for (Map.Entry<String, Double> e : rolledModifier.stats().entrySet()) {
-                    if (!sb.isEmpty()) {
-                        sb.append(", ");
-                    }
+                for (var e : mod.stats().entrySet()) {
+                    if (!sb.isEmpty()) sb.append(", ");
                     sb.append(e.getKey()).append(": ").append(String.format("%.2f", e.getValue()));
                 }
-                sender.sendMessage(this.cc("&7  - &e" + rolledModifier.id() + " &8(" + String.valueOf(sb) + ")"));
+                sender.sendMessage(cc("&7  - &e" + mod.id() + " &8(" + sb + ")"));
             }
         }
     }
 
+    // ── Utilitarios ──
+
     private OrbListener getListener() {
-        ArrayList listeners = HandlerList.getRegisteredListeners((Plugin)this.plugin);
-        for (RegisteredListener rl : listeners) {
-            Listener listener = rl.getListener();
-            if (!(listener instanceof OrbListener)) continue;
-            OrbListener ol = (OrbListener)listener;
-            return ol;
+        var listeners = org.bukkit.event.HandlerList.getRegisteredListeners(plugin);
+        for (var rl : listeners) {
+            if (rl.getListener() instanceof OrbListener ol) return ol;
         }
         return null;
     }
 
     private void preserveTags(NBTItem src, NBTItem dst) {
-        if (src.hasTag("NEMONICORB_TIER")) {
-            dst.addTag(new ItemTag[]{new ItemTag("NEMONICORB_TIER", (Object)src.getInteger("NEMONICORB_TIER"))});
-        }
-        if (src.hasTag("NEMONICORB_MODS")) {
-            dst.addTag(new ItemTag[]{new ItemTag("NEMONICORB_MODS", (Object)src.getString("NEMONICORB_MODS"))});
-        }
-        if (src.hasTag("NEMONICORB_IDENTIFIED")) {
-            dst.addTag(new ItemTag[]{new ItemTag("NEMONICORB_IDENTIFIED", (Object)src.getInteger("NEMONICORB_IDENTIFIED"))});
-        }
-        if (src.hasTag("NEMONICORB_POLISH")) {
-            dst.addTag(new ItemTag[]{new ItemTag("NEMONICORB_POLISH", (Object)src.getInteger("NEMONICORB_POLISH"))});
-        }
+        if (src.hasTag(OrbListener.NBT_TIER)) dst.addTag(new ItemTag(OrbListener.NBT_TIER, src.getInteger(OrbListener.NBT_TIER)));
+        if (src.hasTag(OrbListener.NBT_MODS)) dst.addTag(new ItemTag(OrbListener.NBT_MODS, src.getString(OrbListener.NBT_MODS)));
+        if (src.hasTag(OrbListener.NBT_IDENTIFIED)) dst.addTag(new ItemTag(OrbListener.NBT_IDENTIFIED, src.getInteger(OrbListener.NBT_IDENTIFIED)));
+        if (src.hasTag(OrbListener.NBT_POLISH)) dst.addTag(new ItemTag(OrbListener.NBT_POLISH, src.getInteger(OrbListener.NBT_POLISH)));
     }
 
     private int getItemLevel(NBTItem nbt) {
-        if (nbt.hasTag("MMOITEMS_ITEM_LEVEL")) {
-            return nbt.getInteger("MMOITEMS_ITEM_LEVEL");
-        }
+        if (nbt.hasTag("MMOITEMS_ITEM_LEVEL")) return nbt.getInteger("MMOITEMS_ITEM_LEVEL");
         return 1;
     }
 
     private String resolveCategory(String type) {
-        if (type == null) {
-            return null;
-        }
+        if (type == null) return null;
         String upper = type.toUpperCase();
         for (String cat : List.of("weapon", "armor", "accessory")) {
-            List types = this.plugin.getConfig().getStringList("type-categories." + cat);
-            if (!types.stream().anyMatch(t -> t.equalsIgnoreCase(upper))) continue;
-            return cat;
+            List<String> types = plugin.getConfig().getStringList("type-categories." + cat);
+            if (types.stream().anyMatch(t -> t.equalsIgnoreCase(upper))) return cat;
         }
         return null;
     }
 
     private String resolveCategoryFromMaterial(Material material) {
-        if (material == null) {
-            return null;
-        }
+        if (material == null) return null;
         String name = material.name();
-        if (name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || name.contains("TRIDENT") || name.contains("MACE")) {
+        if (name.contains("SWORD") || name.contains("AXE") || name.contains("BOW")
+                || name.contains("CROSSBOW") || name.contains("TRIDENT") || name.contains("MACE")) {
             return "weapon";
         }
-        if (name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.equals("TURTLE_HELMET")) {
+        if (name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS")
+                || name.contains("BOOTS") || name.equals("TURTLE_HELMET")) {
             return "armor";
         }
         return null;
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(this.cc("&6=== NemonicOrb v2 Admin ==="));
-        sender.sendMessage(this.cc("&e/norb identify <jogador> &7- Pergaminho de Identificacao"));
-        sender.sendMessage(this.cc("&e/norb polish <jogador> &7- Oleo de Polimento (+qualidade)"));
-        sender.sendMessage(this.cc("&e/norb transmute <jogador> &7- Pedra de Encantamento (Comum \u2192 Magico)"));
-        sender.sendMessage(this.cc("&e/norb augment <jogador> &7- Pedra de Reforco (+1 mod em Magico)"));
-        sender.sendMessage(this.cc("&e/norb regal <jogador> &7- Runa Nobre (Magico \u2192 Raro)"));
-        sender.sendMessage(this.cc("&e/norb alchemy <jogador> &7- Pedra de Refinamento (Comum \u2192 Raro)"));
-        sender.sendMessage(this.cc("&e/norb exalt <jogador> &7- Runa de Poder (+1 mod em Raro)"));
-        sender.sendMessage(this.cc("&e/norb chance <jogador> &7- Moeda da Sorte (Tier aleatorio)"));
-        sender.sendMessage(this.cc("&e/norb annul <jogador> &7- Pedra Corrosiva (Remove 1 mod)"));
-        sender.sendMessage(this.cc("&e/norb set-tier <jogador> <0-3> &7- Define tier + rola mods"));
-        sender.sendMessage(this.cc("&e/norb set-id <jogador> <0|1> &7- Define identificacao"));
-        sender.sendMessage(this.cc("&e/norb info <jogador> &7- Info do item"));
-        sender.sendMessage(this.cc("&e/norb audit [self|hand|equip] &7- Auditoria de status/mods"));
-        sender.sendMessage(this.cc("&e/norb giveguide <jogador> &7- Entrega Cronicas de Embati"));
-        sender.sendMessage(this.cc("&e/norb reload &7- Recarrega config"));
+        sender.sendMessage(cc("&6=== NemonicOrb v2 Admin ==="));
+        sender.sendMessage(cc("&e/norb identify <jogador> &7- Pergaminho de Identificacao"));
+        sender.sendMessage(cc("&e/norb polish <jogador> &7- Oleo de Polimento (+qualidade)"));
+        sender.sendMessage(cc("&e/norb transmute <jogador> &7- Pedra de Encantamento (Comum → Magico)"));
+        sender.sendMessage(cc("&e/norb augment <jogador> &7- Pedra de Reforco (+1 mod em Magico)"));
+        sender.sendMessage(cc("&e/norb regal <jogador> &7- Runa Nobre (Magico → Raro)"));
+        sender.sendMessage(cc("&e/norb alchemy <jogador> &7- Pedra de Refinamento (Comum → Raro)"));
+        sender.sendMessage(cc("&e/norb exalt <jogador> &7- Runa de Poder (+1 mod em Raro)"));
+        sender.sendMessage(cc("&e/norb chance <jogador> &7- Moeda da Sorte (Tier aleatorio)"));
+        sender.sendMessage(cc("&e/norb annul <jogador> &7- Pedra Corrosiva (Remove 1 mod)"));
+        sender.sendMessage(cc("&e/norb set-tier <jogador> <0-3> &7- Define tier + rola mods"));
+        sender.sendMessage(cc("&e/norb set-id <jogador> <0|1> &7- Define identificacao"));
+        sender.sendMessage(cc("&e/norb info <jogador> &7- Info do item"));
+        sender.sendMessage(cc("&e/norb audit [self|hand|equip] &7- Auditoria de status/mods"));
+        sender.sendMessage(cc("&e/norb giveguide <jogador> [classe] &7- Entrega guia geral ou de classe"));
+        sender.sendMessage(cc("&e/norb reload &7- Recarrega config"));
     }
 
     private void cmdAudit(CommandSender sender, String[] args) {
-        String mode;
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(this.cc("&cUse este comando em jogo."));
+        if (!(sender instanceof Player p)) {
+            sender.sendMessage(cc("&cUse este comando em jogo."));
             return;
         }
-        Player p = (Player)sender;
-        String string = mode = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "self";
-        if (!(mode.equals("self") || mode.equals("hand") || mode.equals("equip"))) {
-            mode = "self";
-        }
-        List<String> lines = this.plugin.getModifierAuditService().auditPlayer(p, mode);
+        String mode = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "self";
+        if (!mode.equals("self") && !mode.equals("hand") && !mode.equals("equip")) mode = "self";
+        var lines = plugin.getModifierAuditService().auditPlayer(p, mode);
         for (String line : lines) {
-            sender.sendMessage(this.cc(line));
+            sender.sendMessage(cc(line));
         }
     }
 
+    /**
+     * /norb publicwarp <set|del|list|tp> [args]
+     *  - set <nome>:    cria warp publica na posicao do admin (precisa nemonicorb.admin)
+     *  - del <nome>:    remove warp publica (precisa nemonicorb.admin)
+     *  - list:          lista todas as warps (qualquer um)
+     *  - tp <nome>:     teleporta para warp (qualquer jogador, custo 40 mana + 5/passageiro)
+     */
     private void cmdPublicWarp(CommandSender sender, String[] args) {
-        String sub;
-        PublicWarpManager mgr = this.plugin.getPublicWarpManager();
+        PublicWarpManager mgr = plugin.getPublicWarpManager();
         if (mgr == null) {
-            sender.sendMessage(this.cc("&cSistema de warps publicas nao inicializado."));
+            sender.sendMessage(cc("&cSistema de warps publicas nao inicializado."));
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage(this.cc("&eUso: &f/norb publicwarp <set|del|list|tp> [nome]"));
+            sender.sendMessage(cc("&eUso: &f/norb publicwarp <set|del|list|tp> [nome]"));
             return;
         }
-        switch (sub = args[1].toLowerCase()) {
-            case "list": {
-                List<PublicWarpManager.PublicWarp> all = mgr.all();
+        String sub = args[1].toLowerCase();
+
+        switch (sub) {
+            case "list" -> {
+                var all = mgr.all();
                 if (all.isEmpty()) {
-                    sender.sendMessage(this.cc("&7Nenhuma warp publica registrada."));
+                    sender.sendMessage(cc("&7Nenhuma warp publica registrada."));
                     return;
                 }
-                sender.sendMessage(this.cc("&6=== Warps Publicas (" + all.size() + ") ==="));
+                sender.sendMessage(cc("&6=== Warps Publicas (" + all.size() + ") ==="));
                 for (PublicWarpManager.PublicWarp w : all) {
-                    Location loc = w.location();
-                    sender.sendMessage(this.cc("&e" + w.name() + " &7- &f" + loc.getWorld().getName() + " &7(" + (int)loc.getX() + ", " + (int)loc.getY() + ", " + (int)loc.getZ() + ") &8por " + w.creator()));
+                    org.bukkit.Location loc = w.location();
+                    sender.sendMessage(cc("&e" + w.name() + " &7- &f" + loc.getWorld().getName()
+                            + " &7(" + (int) loc.getX() + ", " + (int) loc.getY() + ", " + (int) loc.getZ() + ")"
+                            + " &8por " + w.creator()));
                 }
-                break;
             }
-            case "set": {
+            case "set" -> {
                 if (!sender.hasPermission("nemonicorb.admin")) {
-                    sender.sendMessage(this.cc("&cApenas administradores podem registrar warps publicas."));
+                    sender.sendMessage(cc("&cApenas administradores podem registrar warps publicas."));
                     return;
                 }
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(this.cc("&cApenas jogadores podem usar 'set' (precisa de localizacao)."));
+                if (!(sender instanceof Player p)) {
+                    sender.sendMessage(cc("&cApenas jogadores podem usar 'set' (precisa de localizacao)."));
                     return;
                 }
-                Player p = (Player)sender;
                 if (args.length < 3) {
-                    sender.sendMessage(this.cc("&eUso: &f/norb publicwarp set <nome>"));
+                    sender.sendMessage(cc("&eUso: &f/norb publicwarp set <nome>"));
                     return;
                 }
                 String name = args[2];
                 mgr.setWarp(name, p.getLocation(), p.getName());
-                p.sendMessage(this.cc("&a[Warp] Warp publica &e" + name + "&a registrada na sua posicao."));
-                p.sendMessage(this.cc("&7Coloque um bloco BEACON neste local como sinalizador visual."));
-                break;
+                p.sendMessage(cc("&a[Warp] Warp publica &e" + name + "&a registrada na sua posicao."));
+                p.sendMessage(cc("&7Coloque um bloco BEACON neste local como sinalizador visual."));
             }
-            case "del": 
-            case "delete": 
-            case "remove": {
+            case "del", "delete", "remove" -> {
                 if (!sender.hasPermission("nemonicorb.admin")) {
-                    sender.sendMessage(this.cc("&cApenas administradores podem remover warps publicas."));
+                    sender.sendMessage(cc("&cApenas administradores podem remover warps publicas."));
                     return;
                 }
                 if (args.length < 3) {
-                    sender.sendMessage(this.cc("&eUso: &f/norb publicwarp del <nome>"));
+                    sender.sendMessage(cc("&eUso: &f/norb publicwarp del <nome>"));
                     return;
                 }
                 String name = args[2];
                 if (mgr.removeWarp(name)) {
-                    sender.sendMessage(this.cc("&a[Warp] Warp '" + name + "' removida."));
-                    break;
+                    sender.sendMessage(cc("&a[Warp] Warp '" + name + "' removida."));
+                } else {
+                    sender.sendMessage(cc("&c[Warp] Warp '" + name + "' nao existe."));
                 }
-                sender.sendMessage(this.cc("&c[Warp] Warp '" + name + "' nao existe."));
-                break;
             }
-            case "tp": 
-            case "teleport": {
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(this.cc("&cApenas jogadores podem se teleportar."));
+            case "tp", "teleport" -> {
+                if (!(sender instanceof Player p)) {
+                    sender.sendMessage(cc("&cApenas jogadores podem se teleportar."));
                     return;
                 }
-                Player p = (Player)sender;
                 if (args.length < 3) {
-                    sender.sendMessage(this.cc("&eUso: &f/norb publicwarp tp <nome>"));
+                    sender.sendMessage(cc("&eUso: &f/norb publicwarp tp <nome>"));
                     return;
                 }
                 mgr.startTeleport(p, args[2]);
-                break;
             }
-            default: {
-                sender.sendMessage(this.cc("&eUso: &f/norb publicwarp <set|del|list|tp> [nome]"));
-            }
+            default -> sender.sendMessage(cc("&eUso: &f/norb publicwarp <set|del|list|tp> [nome]"));
         }
     }
 
-    private void cmdGiveGuide(CommandSender sender, Player target) {
-        ItemStack guide = this.plugin.getGuideManager().createWelcomeBook();
+    private void cmdGiveGuide(CommandSender sender, Player target, String[] args) {
+        String classKey = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+        boolean welcomeGuide = classKey.isBlank() || classKey.equals("geral") || classKey.equals("welcome");
+        ItemStack guide = welcomeGuide
+                ? plugin.getGuideManager().createWelcomeBook()
+                : plugin.getGuideManager().createClassBook(classKey);
+
         if (guide == null) {
-            sender.sendMessage(this.cc("&cNao foi possivel criar o livro guia."));
+            sender.sendMessage(cc("&cGuia invalido. Use: geral, alquimista, ferreiro, mercador ou guerreiro."));
             return;
         }
-        target.getInventory().addItem(new ItemStack[]{guide});
-        sender.sendMessage(this.cc("&aCronicas de Embati entregue para " + target.getName() + "."));
+
+        target.getInventory().addItem(guide);
+        String guideName = welcomeGuide ? "Cronicas de Embati" : "guia de " + classKey;
+        sender.sendMessage(cc("&a" + guideName + " entregue para " + target.getName() + "."));
     }
 
     private void msg(CommandSender sender, String key) {
-        String prefix = this.plugin.getConfig().getString("messages.prefix", "");
-        String raw = this.plugin.getConfig().getString("messages." + key, key);
-        sender.sendMessage(this.cc(prefix + raw));
+        String prefix = plugin.getConfig().getString("messages.prefix", "");
+        String raw = plugin.getConfig().getString("messages." + key, key);
+        sender.sendMessage(cc(prefix + raw));
     }
 
     private String cc(String s) {
-        return ChatColor.translateAlternateColorCodes((char)'&', (String)s);
+        return ChatColor.translateAlternateColorCodes('&', s);
     }
 
+    // ── Tab Completer ──
+
+    @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 1) {
-            return SUBCOMMANDS.stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
+            return SUBCOMMANDS.stream()
+                    .filter(s -> s.startsWith(args[0].toLowerCase()))
+                    .collect(Collectors.toList());
         }
         if (args.length == 2 && !args[0].equalsIgnoreCase("reload")) {
-            if (args[0].equalsIgnoreCase("audit")) {
-                return List.of("self", "hand", "equip");
-            }
-            return null;
+            if (args[0].equalsIgnoreCase("audit")) return List.of("self", "hand", "equip");
+            return null; // Nomes de jogadores online
         }
         if (args.length == 3) {
             String a = args[0].toLowerCase();
-            if (a.equals("set-tier")) {
-                return List.of("0", "1", "2", "3");
-            }
-            if (a.equals("set-id")) {
-                return List.of("0", "1");
-            }
+            if (a.equals("set-tier")) return List.of("0", "1", "2", "3");
+            if (a.equals("set-id")) return List.of("0", "1");
+            if (a.equals("giveguide")) return List.of("geral", "alquimista", "ferreiro", "mercador", "guerreiro");
         }
         return Collections.emptyList();
     }
 }
-

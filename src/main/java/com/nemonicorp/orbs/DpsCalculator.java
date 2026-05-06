@@ -1,136 +1,135 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  io.lumine.mythic.lib.api.item.NBTItem
- *  net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem
- *  net.Indyuce.mmoitems.stat.data.DoubleData
- *  net.Indyuce.mmoitems.stat.data.type.StatData
- *  net.Indyuce.mmoitems.stat.type.DoubleStat
- *  net.Indyuce.mmoitems.stat.type.ItemStat
- *  org.bukkit.Material
- *  org.bukkit.inventory.ItemStack
- */
 package com.nemonicorp.orbs;
 
-import com.nemonicorp.orbs.ModifierEngine;
-import com.nemonicorp.orbs.NemonicOrbPlugin;
 import io.lumine.mythic.lib.api.item.NBTItem;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
 import net.Indyuce.mmoitems.stat.data.DoubleData;
-import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.DoubleStat;
-import net.Indyuce.mmoitems.stat.type.ItemStat;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public class DpsCalculator {
-    private static final Set<String> DAMAGE_STATS = Set.of("attack-damage", "physical-damage", "weapon-damage", "magic-damage", "fire-damage", "ice-damage", "lightning-damage", "earth-damage", "water-damage", "wind-damage");
+import java.util.List;
+import java.util.Set;
 
-    public static double calculate(ItemStack item, NBTItem nbt, List<ModifierEngine.RolledModifier> mods, int tier, boolean isMMOItem, ModifierEngine engine) {
-        if (tier < 1) {
-            return -1.0;
+/**
+ * Calcula DPH (Dano por Hit) de itens modificados pelo NemonicOrbPlugin.
+ * Formula: DPH = baseDamage + soma de todos os danos dos modificadores
+ * Inclui danos elementais (fire, ice, lightning, earth, water, wind).
+ */
+public class DpsCalculator {
+
+    /** Stats de dano que contribuem para o DPH */
+    private static final Set<String> DAMAGE_STATS = Set.of(
+            "attack-damage", "physical-damage", "weapon-damage", "magic-damage",
+            "fire-damage", "ice-damage", "lightning-damage",
+            "earth-damage", "water-damage", "wind-damage"
+    );
+
+    /**
+     * Calcula o DPH (Dano por Hit) de um item com base nos seus mods e stats base.
+     * Retorna -1 se nao for possivel calcular (item nao e arma, tier < 1, etc.).
+     */
+    public static double calculate(ItemStack item, NBTItem nbt,
+                                   List<ModifierEngine.RolledModifier> mods,
+                                   int tier, boolean isMMOItem,
+                                   ModifierEngine engine) {
+        if (tier < 1) return -1;
+        if (!isWeapon(item, nbt)) {
+            NemonicOrbPlugin.getInstance().getLogger().info(
+                    "[DEBUG-DPH] isWeapon=false material=" + item.getType().name()
+                    + " hasType=" + nbt.hasType()
+                    + " mmoType=" + nbt.getString("MMOITEMS_ITEM_TYPE"));
+            return -1;
         }
-        if (!DpsCalculator.isWeapon(item, nbt)) {
-            NemonicOrbPlugin.getInstance().getLogger().info("[DEBUG-DPH] isWeapon=false material=" + item.getType().name() + " hasType=" + nbt.hasType() + " mmoType=" + nbt.getString("MMOITEMS_ITEM_TYPE"));
-            return -1.0;
-        }
-        double baseDamage = DpsCalculator.getBaseDamage(item, nbt, isMMOItem, engine);
-        double modDamage = 0.0;
+
+        double baseDamage = getBaseDamage(item, nbt, isMMOItem, engine);
+        double modDamage = 0;
+
         for (ModifierEngine.RolledModifier mod : mods) {
-            for (Map.Entry<String, Double> entry : mod.stats().entrySet()) {
+            for (var entry : mod.stats().entrySet()) {
                 String statKey = entry.getKey();
                 double value = entry.getValue();
-                if (!DAMAGE_STATS.contains(statKey)) continue;
-                modDamage += value;
-            }
-        }
-        double totalDamage = baseDamage + modDamage;
-        if (totalDamage < 0.0) {
-            totalDamage = 0.0;
-        }
-        return (double)Math.round(totalDamage * 10.0) / 10.0;
-    }
-
-    private static double getBaseDamage(ItemStack item, NBTItem nbt, boolean isMMOItem, ModifierEngine engine) {
-        if (isMMOItem) {
-            try {
-                StatData data;
-                LiveMMOItem live = new LiveMMOItem(item);
-                DoubleStat attackDamageStat = engine.resolveStat("attack-damage");
-                if (attackDamageStat != null && (data = live.getData((ItemStat)attackDamageStat)) instanceof DoubleData) {
-                    DoubleData dd = (DoubleData)data;
-                    return dd.getValue();
+                if (DAMAGE_STATS.contains(statKey)) {
+                    modDamage += value;
                 }
             }
-            catch (Exception exception) {
-                // empty catch block
-            }
         }
-        return DpsCalculator.getVanillaBaseDamage(item.getType());
+
+        double totalDamage = baseDamage + modDamage;
+        if (totalDamage < 0) totalDamage = 0;
+
+        return Math.round(totalDamage * 10.0) / 10.0; // 1 casa decimal
     }
 
+    /**
+     * Obtem o dano base do item (vanilla attribute ou MMOItems stat).
+     */
+    private static double getBaseDamage(ItemStack item, NBTItem nbt,
+                                        boolean isMMOItem, ModifierEngine engine) {
+        if (isMMOItem) {
+            try {
+                LiveMMOItem live = new LiveMMOItem(item);
+                DoubleStat attackDamageStat = engine.resolveStat("attack-damage");
+                if (attackDamageStat != null) {
+                    var data = live.getData(attackDamageStat);
+                    if (data instanceof DoubleData dd) {
+                        return dd.getValue();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // Fallback: vanilla base damage
+        return getVanillaBaseDamage(item.getType());
+    }
+
+    /**
+     * Retorna o dano base vanilla de um material.
+     */
     private static double getVanillaBaseDamage(Material mat) {
         String name = mat.name();
-        if (name.contains("NETHERITE_SWORD")) {
-            return 8.0;
-        }
-        if (name.contains("DIAMOND_SWORD")) {
-            return 7.0;
-        }
-        if (name.contains("IRON_SWORD")) {
-            return 6.0;
-        }
-        if (name.contains("STONE_SWORD")) {
-            return 5.0;
-        }
-        if (name.contains("GOLDEN_SWORD")) {
-            return 4.0;
-        }
-        if (name.contains("WOODEN_SWORD")) {
-            return 4.0;
-        }
-        if (name.contains("NETHERITE_AXE")) {
-            return 10.0;
-        }
-        if (name.contains("DIAMOND_AXE")) {
-            return 9.0;
-        }
-        if (name.contains("IRON_AXE")) {
-            return 9.0;
-        }
-        if (name.contains("STONE_AXE")) {
-            return 9.0;
-        }
-        if (name.contains("GOLDEN_AXE")) {
-            return 7.0;
-        }
-        if (name.contains("WOODEN_AXE")) {
-            return 7.0;
-        }
-        if (name.equals("TRIDENT")) {
-            return 9.0;
-        }
-        if (name.contains("MACE")) {
-            return 6.0;
-        }
-        if (name.equals("BOW") || name.equals("CROSSBOW")) {
-            return 6.0;
-        }
-        return 1.0;
+        // Espadas
+        if (name.contains("NETHERITE_SWORD")) return 8;
+        if (name.contains("DIAMOND_SWORD")) return 7;
+        if (name.contains("IRON_SWORD")) return 6;
+        if (name.contains("STONE_SWORD")) return 5;
+        if (name.contains("GOLDEN_SWORD")) return 4;
+        if (name.contains("WOODEN_SWORD")) return 4;
+        // Machados
+        if (name.contains("NETHERITE_AXE")) return 10;
+        if (name.contains("DIAMOND_AXE")) return 9;
+        if (name.contains("IRON_AXE")) return 9;
+        if (name.contains("STONE_AXE")) return 9;
+        if (name.contains("GOLDEN_AXE")) return 7;
+        if (name.contains("WOODEN_AXE")) return 7;
+        // Tridentes
+        if (name.equals("TRIDENT")) return 9;
+        // Maces
+        if (name.contains("MACE")) return 6;
+        // Arcos/Bestas (dano medio)
+        if (name.equals("BOW") || name.equals("CROSSBOW")) return 6;
+        // Default para armas nao mapeadas
+        return 1;
     }
 
+    /**
+     * Verifica se o item e uma arma (vanilla ou MMOItems).
+     */
     private static boolean isWeapon(ItemStack item, NBTItem nbt) {
-        String type;
-        if (nbt.hasType() && (type = nbt.getString("MMOITEMS_ITEM_TYPE")) != null) {
-            return Set.of("SWORD", "DAGGER", "AXE", "BOW", "CROSSBOW", "STAFF", "WAND", "WHIP", "MUSKET", "LUTE", "SPEAR", "GREATSTAFF", "GREATSWORD", "HAMMER", "KATANA", "HALBERD", "GAUNTLET", "TRIDENT", "MACE").contains(type);
+        // Verificar MMOItems type
+        if (nbt.hasType()) {
+            String type = nbt.getString("MMOITEMS_ITEM_TYPE");
+            if (type != null) {
+                return Set.of("SWORD", "DAGGER", "AXE", "BOW", "CROSSBOW", "STAFF",
+                        "WAND", "WHIP", "MUSKET", "LUTE", "SPEAR", "GREATSTAFF",
+                        "GREATSWORD", "HAMMER", "KATANA", "HALBERD", "GAUNTLET",
+                        "TRIDENT", "MACE").contains(type);
+            }
         }
+        // Verificar vanilla
         Material mat = item.getType();
         String name = mat.name();
-        return name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || name.contains("TRIDENT") || name.contains("MACE");
+        return name.contains("SWORD") || name.contains("AXE") || name.contains("BOW")
+                || name.contains("CROSSBOW") || name.contains("TRIDENT")
+                || name.contains("MACE");
     }
 }
-

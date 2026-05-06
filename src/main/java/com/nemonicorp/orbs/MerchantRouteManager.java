@@ -1,43 +1,6 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.bukkit.Bukkit
- *  org.bukkit.ChatColor
- *  org.bukkit.Location
- *  org.bukkit.Material
- *  org.bukkit.Sound
- *  org.bukkit.World
- *  org.bukkit.block.Block
- *  org.bukkit.configuration.ConfigurationSection
- *  org.bukkit.configuration.file.YamlConfiguration
- *  org.bukkit.entity.Player
- *  org.bukkit.event.EventHandler
- *  org.bukkit.event.EventPriority
- *  org.bukkit.event.Listener
- *  org.bukkit.event.block.BlockBreakEvent
- *  org.bukkit.plugin.Plugin
- *  org.bukkit.scheduler.BukkitTask
- */
 package com.nemonicorp.orbs;
 
-import com.nemonicorp.orbs.NemonicOrbPlugin;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -46,89 +9,131 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
-public class MerchantRouteManager
-implements Listener {
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class MerchantRouteManager implements Listener {
+
     private final NemonicOrbPlugin plugin;
-    private final Map<UUID, List<Waypoint>> playerRoutes = new ConcurrentHashMap<UUID, List<Waypoint>>();
-    private final Map<String, UUID> waypointLocations = new ConcurrentHashMap<String, UUID>();
+
+    // In-memory waypoint storage: UUID -> list of waypoints
+    private final Map<UUID, List<Waypoint>> playerRoutes = new ConcurrentHashMap<>();
+
+    // Active waypoint locations for fast block-break lookup: "world,x,y,z" -> owner UUID
+    private final Map<String, UUID> waypointLocations = new ConcurrentHashMap<>();
+
     private File routeFile;
     private BukkitTask maintenanceTask;
+
+    // Waypoint record
+    public record Waypoint(
+        String name,
+        String worldName,
+        int x, int y, int z,
+        long registered,
+        long lastActive,
+        int price,
+        String access,   // "public", "guild", "whitelist"
+        List<UUID> whitelist,
+        boolean active    // false = deactivated due to no XP maintenance
+    ) {
+        public Location toLocation() {
+            World w = Bukkit.getWorld(worldName);
+            if (w == null) return null;
+            return new Location(w, x + 0.5, y + 1.0, z + 0.5);
+        }
+
+        public String locationKey() {
+            return worldName + "," + x + "," + y + "," + z;
+        }
+
+        public Waypoint withActive(boolean active) {
+            return new Waypoint(name, worldName, x, y, z, registered, System.currentTimeMillis(), price, access, whitelist, active);
+        }
+
+        public Waypoint withLastActive(long lastActive) {
+            return new Waypoint(name, worldName, x, y, z, registered, lastActive, price, access, whitelist, active);
+        }
+    }
 
     public MerchantRouteManager(NemonicOrbPlugin plugin) {
         this.plugin = plugin;
         this.routeFile = new File(plugin.getDataFolder(), "merchant_routes.yml");
     }
 
+    // ═══════ Lifecycle ═══════
+
     public void load() {
-        this.playerRoutes.clear();
-        this.waypointLocations.clear();
-        if (!this.routeFile.exists()) {
-            return;
-        }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration((File)this.routeFile);
+        playerRoutes.clear();
+        waypointLocations.clear();
+
+        if (!routeFile.exists()) return;
+
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(routeFile);
         ConfigurationSection routes = yaml.getConfigurationSection("routes");
-        if (routes == null) {
-            return;
-        }
+        if (routes == null) return;
+
         for (String uuidStr : routes.getKeys(false)) {
             UUID uuid;
-            try {
-                uuid = UUID.fromString(uuidStr);
-            }
-            catch (IllegalArgumentException e) {
-                continue;
-            }
-            ArrayList<Waypoint> waypoints = new ArrayList<Waypoint>();
+            try { uuid = UUID.fromString(uuidStr); }
+            catch (IllegalArgumentException e) { continue; }
+
+            List<Waypoint> waypoints = new ArrayList<>();
             ConfigurationSection wpSection = routes.getConfigurationSection(uuidStr);
             if (wpSection == null) continue;
-            List wpList = wpSection.getMapList("waypoints");
-            for (Map wpMap : wpList) {
+
+            List<Map<?, ?>> wpList = wpSection.getMapList("waypoints");
+            for (Map<?, ?> wpMap : wpList) {
                 try {
                     String name = wpMap.containsKey("name") ? String.valueOf(wpMap.get("name")) : "Unnamed";
                     String world = wpMap.containsKey("world") ? String.valueOf(wpMap.get("world")) : "world";
-                    int x = wpMap.containsKey("x") ? ((Number)wpMap.get("x")).intValue() : 0;
-                    int y = wpMap.containsKey("y") ? ((Number)wpMap.get("y")).intValue() : 64;
-                    int z = wpMap.containsKey("z") ? ((Number)wpMap.get("z")).intValue() : 0;
-                    long registered = wpMap.containsKey("registered") ? ((Number)wpMap.get("registered")).longValue() : System.currentTimeMillis();
-                    long lastActive = wpMap.containsKey("last-active") ? ((Number)wpMap.get("last-active")).longValue() : System.currentTimeMillis();
-                    int price = wpMap.containsKey("price") ? ((Number)wpMap.get("price")).intValue() : 0;
+                    int x = wpMap.containsKey("x") ? ((Number) wpMap.get("x")).intValue() : 0;
+                    int y = wpMap.containsKey("y") ? ((Number) wpMap.get("y")).intValue() : 64;
+                    int z = wpMap.containsKey("z") ? ((Number) wpMap.get("z")).intValue() : 0;
+                    long registered = wpMap.containsKey("registered") ? ((Number) wpMap.get("registered")).longValue() : System.currentTimeMillis();
+                    long lastActive = wpMap.containsKey("last-active") ? ((Number) wpMap.get("last-active")).longValue() : System.currentTimeMillis();
+                    int price = wpMap.containsKey("price") ? ((Number) wpMap.get("price")).intValue() : 0;
                     String access = wpMap.containsKey("access") ? String.valueOf(wpMap.get("access")) : "public";
-                    boolean active = wpMap.containsKey("active") ? (Boolean)wpMap.get("active") : true;
-                    ArrayList<UUID> whitelist = new ArrayList<UUID>();
+                    boolean active = wpMap.containsKey("active") ? (boolean) wpMap.get("active") : true;
+
+                    List<UUID> whitelist = new ArrayList<>();
                     Object wlObj = wpMap.get("whitelist");
-                    if (wlObj instanceof List) {
-                        List wlList = (List)wlObj;
+                    if (wlObj instanceof List<?> wlList) {
                         for (Object o : wlList) {
-                            try {
-                                whitelist.add(UUID.fromString(String.valueOf(o)));
-                            }
-                            catch (IllegalArgumentException illegalArgumentException) {}
+                            try { whitelist.add(UUID.fromString(String.valueOf(o))); }
+                            catch (IllegalArgumentException ignored) {}
                         }
                     }
+
                     Waypoint wp = new Waypoint(name, world, x, y, z, registered, lastActive, price, access, whitelist, active);
                     waypoints.add(wp);
-                    this.waypointLocations.put(wp.locationKey(), uuid);
-                }
-                catch (Exception e) {
-                    this.plugin.getLogger().warning("[ROUTES] Erro ao carregar waypoint: " + e.getMessage());
+                    waypointLocations.put(wp.locationKey(), uuid);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("[ROUTES] Erro ao carregar waypoint: " + e.getMessage());
                 }
             }
-            if (waypoints.isEmpty()) continue;
-            this.playerRoutes.put(uuid, waypoints);
+
+            if (!waypoints.isEmpty()) {
+                playerRoutes.put(uuid, waypoints);
+            }
         }
-        this.plugin.getLogger().info("[ROUTES] Carregados " + this.playerRoutes.size() + " jogadores com rotas.");
+
+        plugin.getLogger().info("[ROUTES] Carregados " + playerRoutes.size() + " jogadores com rotas.");
     }
 
     public void save() {
         YamlConfiguration yaml = new YamlConfiguration();
-        for (Map.Entry<UUID, List<Waypoint>> entry : this.playerRoutes.entrySet()) {
+
+        for (Map.Entry<UUID, List<Waypoint>> entry : playerRoutes.entrySet()) {
             String path = "routes." + entry.getKey().toString();
-            ArrayList wpList = new ArrayList();
+            List<Map<String, Object>> wpList = new ArrayList<>();
+
             for (Waypoint wp : entry.getValue()) {
-                LinkedHashMap<String, Object> wpMap = new LinkedHashMap<String, Object>();
+                Map<String, Object> wpMap = new LinkedHashMap<>();
                 wpMap.put("name", wp.name());
                 wpMap.put("world", wp.worldName());
                 wpMap.put("x", wp.x());
@@ -139,216 +144,218 @@ implements Listener {
                 wpMap.put("price", wp.price());
                 wpMap.put("access", wp.access());
                 wpMap.put("active", wp.active());
-                ArrayList<String> wlStrings = new ArrayList<String>();
-                for (UUID u : wp.whitelist()) {
-                    wlStrings.add(u.toString());
-                }
+
+                List<String> wlStrings = new ArrayList<>();
+                for (UUID u : wp.whitelist()) wlStrings.add(u.toString());
                 wpMap.put("whitelist", wlStrings);
+
                 wpList.add(wpMap);
             }
+
             yaml.set(path + ".waypoints", wpList);
         }
+
         try {
-            yaml.save(this.routeFile);
-        }
-        catch (IOException e) {
-            this.plugin.getLogger().warning("[ROUTES] Erro ao salvar rotas: " + e.getMessage());
+            yaml.save(routeFile);
+        } catch (IOException e) {
+            plugin.getLogger().warning("[ROUTES] Erro ao salvar rotas: " + e.getMessage());
         }
     }
 
     public void startMaintenance() {
-        this.maintenanceTask = Bukkit.getScheduler().runTaskTimer((Plugin)this.plugin, this::tickMaintenance, 6000L, 6000L);
+        // Run every 5 minutes (6000 ticks)
+        maintenanceTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tickMaintenance, 6000L, 6000L);
     }
 
     public void shutdown() {
-        if (this.maintenanceTask != null) {
-            this.maintenanceTask.cancel();
-        }
-        this.save();
+        if (maintenanceTask != null) maintenanceTask.cancel();
+        save();
     }
+
+    // ═══════ Maintenance ═══════
 
     private void tickMaintenance() {
         long now = System.currentTimeMillis();
-        int xpPerHour = this.plugin.getConfig().getInt("merchant.teleport.maintenance-xp-per-hour", 1);
-        int inactiveDays = this.plugin.getConfig().getInt("merchant.teleport.inactive-days-removal", 7);
-        long removalThresholdMs = (long)inactiveDays * 24L * 60L * 60L * 1000L;
+        int xpPerHour = plugin.getConfig().getInt("merchant.teleport.maintenance-xp-per-hour", 1);
+        int inactiveDays = plugin.getConfig().getInt("merchant.teleport.inactive-days-removal", 7);
+        long removalThresholdMs = inactiveDays * 24L * 60L * 60L * 1000L;
         boolean changed = false;
-        for (Map.Entry<UUID, List<Waypoint>> entry : this.playerRoutes.entrySet()) {
+
+        for (Map.Entry<UUID, List<Waypoint>> entry : playerRoutes.entrySet()) {
             UUID uuid = entry.getKey();
-            Player player = Bukkit.getPlayer((UUID)uuid);
+            Player player = Bukkit.getPlayer(uuid);
             List<Waypoint> waypoints = entry.getValue();
             Iterator<Waypoint> it = waypoints.iterator();
+
             while (it.hasNext()) {
-                int idx;
-                long hoursSinceActive;
                 Waypoint wp = it.next();
-                if (!wp.active() && now - wp.lastActive() > removalThresholdMs) {
-                    this.waypointLocations.remove(wp.locationKey());
+
+                // Remove permanently inactive waypoints (7 days)
+                if (!wp.active() && (now - wp.lastActive()) > removalThresholdMs) {
+                    waypointLocations.remove(wp.locationKey());
                     it.remove();
                     changed = true;
-                    if (player == null) continue;
-                    player.sendMessage(ChatColor.translateAlternateColorCodes((char)'&', (String)("&c[Mercador] Rota '" + wp.name() + "' removida por inatividade prolongada!")));
+                    if (player != null) {
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                            "&c[Mercador] Rota '" + wp.name() + "' removida por inatividade prolongada!"));
+                    }
                     continue;
                 }
-                if (player == null || !wp.active() || (hoursSinceActive = (now - wp.lastActive()) / 3600000L) < 1L) continue;
-                int cost = (int)Math.max(1L, hoursSinceActive * (long)xpPerHour);
-                if (player.getLevel() >= cost) {
-                    player.setLevel(player.getLevel() - cost);
-                    idx = waypoints.indexOf(wp);
-                    waypoints.set(idx, wp.withLastActive(now));
-                    changed = true;
-                    continue;
+
+                // Maintenance cost: only if player is online and waypoint is active
+                if (player != null && wp.active()) {
+                    // Check if enough time has passed (maintenance every 5 min = 1/12 of hourly cost)
+                    // We just deduct vanilla XP levels proportionally
+                    // Since this runs every 5 min, cost = xpPerHour / 12 per tick
+                    // Simplify: deduct 1 level every hour (12 ticks of 5 min)
+                    // Track via lastActive: if more than 1 hour since last maintenance
+                    long hoursSinceActive = (now - wp.lastActive()) / (60L * 60L * 1000L);
+                    if (hoursSinceActive >= 1) {
+                        int cost = (int) Math.max(1, hoursSinceActive * xpPerHour);
+                        if (player.getLevel() >= cost) {
+                            player.setLevel(player.getLevel() - cost);
+                            int idx = waypoints.indexOf(wp);
+                            waypoints.set(idx, wp.withLastActive(now));
+                            changed = true;
+                        } else {
+                            // Deactivate
+                            int idx = waypoints.indexOf(wp);
+                            waypoints.set(idx, wp.withActive(false));
+                            changed = true;
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                "&c[Mercador] Rota '" + wp.name() + "' desativada! XP insuficiente para manutencao."));
+                        }
+                    }
                 }
-                idx = waypoints.indexOf(wp);
-                waypoints.set(idx, wp.withActive(false));
-                changed = true;
-                player.sendMessage(ChatColor.translateAlternateColorCodes((char)'&', (String)("&c[Mercador] Rota '" + wp.name() + "' desativada! XP insuficiente para manutencao.")));
             }
-            if (!waypoints.isEmpty()) continue;
-            this.playerRoutes.remove(uuid);
+
+            // Clean up empty lists
+            if (waypoints.isEmpty()) {
+                playerRoutes.remove(uuid);
+            }
         }
-        if (changed) {
-            this.save();
-        }
+
+        if (changed) save();
     }
 
-    @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+    // ═══════ Block Break Listener ═══════
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        Player breaker;
         Block block = event.getBlock();
-        if (block.getType() != Material.CARTOGRAPHY_TABLE) {
-            return;
-        }
+        if (block.getType() != Material.CARTOGRAPHY_TABLE) return;
+
         String key = block.getWorld().getName() + "," + block.getX() + "," + block.getY() + "," + block.getZ();
-        UUID ownerUUID = this.waypointLocations.remove(key);
-        if (ownerUUID == null) {
-            return;
-        }
-        List<Waypoint> waypoints = this.playerRoutes.get(ownerUUID);
-        if (waypoints == null) {
-            return;
-        }
+        UUID ownerUUID = waypointLocations.remove(key);
+        if (ownerUUID == null) return;
+
+        List<Waypoint> waypoints = playerRoutes.get(ownerUUID);
+        if (waypoints == null) return;
+
         waypoints.removeIf(wp -> wp.locationKey().equals(key));
-        if (waypoints.isEmpty()) {
-            this.playerRoutes.remove(ownerUUID);
-        }
-        this.save();
-        Player owner = Bukkit.getPlayer((UUID)ownerUUID);
+        if (waypoints.isEmpty()) playerRoutes.remove(ownerUUID);
+        save();
+
+        // Notify owner if online
+        Player owner = Bukkit.getPlayer(ownerUUID);
         if (owner != null) {
-            owner.sendMessage(ChatColor.translateAlternateColorCodes((char)'&', (String)"&c[Mercador] Uma de suas mesas de rota comercial foi destruida! Rota removida."));
+            owner.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "&c[Mercador] Uma de suas mesas de rota comercial foi destruida! Rota removida."));
             owner.playSound(owner.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 0.5f);
         }
-        if (!(breaker = event.getPlayer()).equals((Object)owner)) {
-            breaker.sendMessage(ChatColor.translateAlternateColorCodes((char)'&', (String)"&6[Mercador] &eVoce destruiu uma Mesa de Rota Comercial!"));
+
+        // Notify breaker
+        Player breaker = event.getPlayer();
+        if (!breaker.equals(owner)) {
+            breaker.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "&6[Mercador] &eVoce destruiu uma Mesa de Rota Comercial!"));
         }
-        this.plugin.getLogger().info("[ROUTES] Waypoint removido em " + key + " (dono: " + String.valueOf(ownerUUID) + ", destruido por: " + breaker.getName() + ")");
+
+        plugin.getLogger().info("[ROUTES] Waypoint removido em " + key + " (dono: " + ownerUUID + ", destruido por: " + breaker.getName() + ")");
     }
 
+    // ═══════ Public API ═══════
+
     public List<Waypoint> getWaypoints(UUID player) {
-        return this.playerRoutes.getOrDefault(player, Collections.emptyList());
+        return playerRoutes.getOrDefault(player, Collections.emptyList());
     }
 
     public int getMaxSlots(int playerLevel) {
-        ConfigurationSection cfg = this.plugin.getConfig().getConfigurationSection("merchant.teleport.max-waypoints-by-level");
-        if (cfg == null) {
-            return playerLevel >= 35 ? 3 : (playerLevel >= 10 ? 2 : 0);
-        }
+        // Read from config: merchant.teleport.max-waypoints-by-level
+        ConfigurationSection cfg = plugin.getConfig().getConfigurationSection("merchant.teleport.max-waypoints-by-level");
+        if (cfg == null) return playerLevel >= 35 ? 3 : (playerLevel >= 10 ? 2 : 0);
+
         int maxSlots = 0;
         for (String key : cfg.getKeys(false)) {
             try {
                 int lvl = Integer.parseInt(key);
-                if (playerLevel < lvl) continue;
-                maxSlots = Math.max(maxSlots, cfg.getInt(key));
-            }
-            catch (NumberFormatException numberFormatException) {}
+                if (playerLevel >= lvl) {
+                    maxSlots = Math.max(maxSlots, cfg.getInt(key));
+                }
+            } catch (NumberFormatException ignored) {}
         }
         return maxSlots;
     }
 
     public boolean addWaypoint(UUID playerUUID, Waypoint wp) {
-        List waypoints = this.playerRoutes.computeIfAbsent(playerUUID, k -> new ArrayList());
+        List<Waypoint> waypoints = playerRoutes.computeIfAbsent(playerUUID, k -> new ArrayList<>());
         waypoints.add(wp);
-        this.waypointLocations.put(wp.locationKey(), playerUUID);
-        this.save();
+        waypointLocations.put(wp.locationKey(), playerUUID);
+        save();
         return true;
     }
 
     public boolean removeWaypoint(UUID playerUUID, int index) {
-        List<Waypoint> waypoints = this.playerRoutes.get(playerUUID);
-        if (waypoints == null || index < 0 || index >= waypoints.size()) {
-            return false;
-        }
+        List<Waypoint> waypoints = playerRoutes.get(playerUUID);
+        if (waypoints == null || index < 0 || index >= waypoints.size()) return false;
+
         Waypoint removed = waypoints.remove(index);
-        this.waypointLocations.remove(removed.locationKey());
-        if (waypoints.isEmpty()) {
-            this.playerRoutes.remove(playerUUID);
-        }
-        this.save();
+        waypointLocations.remove(removed.locationKey());
+        if (waypoints.isEmpty()) playerRoutes.remove(playerUUID);
+        save();
         return true;
     }
 
     public boolean hasWaypointAt(Location loc) {
         String key = loc.getWorld().getName() + "," + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ();
-        return this.waypointLocations.containsKey(key);
+        return waypointLocations.containsKey(key);
     }
 
     public boolean isWaypointValid(Waypoint wp) {
-        World world = Bukkit.getWorld((String)wp.worldName());
-        if (world == null) {
-            return false;
-        }
+        World world = Bukkit.getWorld(wp.worldName());
+        if (world == null) return false;
         Block block = world.getBlockAt(wp.x(), wp.y(), wp.z());
         return block.getType() == Material.CARTOGRAPHY_TABLE;
     }
 
+    /**
+     * Reactivate a deactivated waypoint (player pays XP to reactivate)
+     */
     public boolean reactivateWaypoint(UUID playerUUID, int index) {
-        List<Waypoint> waypoints = this.playerRoutes.get(playerUUID);
-        if (waypoints == null || index < 0 || index >= waypoints.size()) {
-            return false;
-        }
+        List<Waypoint> waypoints = playerRoutes.get(playerUUID);
+        if (waypoints == null || index < 0 || index >= waypoints.size()) return false;
+
         Waypoint wp = waypoints.get(index);
-        if (wp.active()) {
-            return true;
-        }
+        if (wp.active()) return true;
+
         waypoints.set(index, wp.withActive(true));
-        this.save();
+        save();
         return true;
     }
 
+    /**
+     * Get only the player's own waypoints (each player sees only their routes).
+     */
     public List<WaypointInfo> getAccessibleWaypoints(UUID travellerUUID) {
-        ArrayList<WaypointInfo> accessible = new ArrayList<WaypointInfo>();
-        List own = this.playerRoutes.getOrDefault(travellerUUID, List.of());
-        for (int i = 0; i < own.size(); ++i) {
-            Waypoint wp = (Waypoint)own.get(i);
+        List<WaypointInfo> accessible = new ArrayList<>();
+        List<Waypoint> own = playerRoutes.getOrDefault(travellerUUID, List.of());
+        for (int i = 0; i < own.size(); i++) {
+            Waypoint wp = own.get(i);
             if (!wp.active()) continue;
             accessible.add(new WaypointInfo(travellerUUID, i, wp));
         }
         return accessible;
     }
 
-    public record Waypoint(String name, String worldName, int x, int y, int z, long registered, long lastActive, int price, String access, List<UUID> whitelist, boolean active) {
-        public Location toLocation() {
-            World w = Bukkit.getWorld((String)this.worldName);
-            if (w == null) {
-                return null;
-            }
-            return new Location(w, (double)this.x + 0.5, (double)this.y + 1.0, (double)this.z + 0.5);
-        }
-
-        public String locationKey() {
-            return this.worldName + "," + this.x + "," + this.y + "," + this.z;
-        }
-
-        public Waypoint withActive(boolean active) {
-            return new Waypoint(this.name, this.worldName, this.x, this.y, this.z, this.registered, System.currentTimeMillis(), this.price, this.access, this.whitelist, active);
-        }
-
-        public Waypoint withLastActive(long lastActive) {
-            return new Waypoint(this.name, this.worldName, this.x, this.y, this.z, this.registered, lastActive, this.price, this.access, this.whitelist, this.active);
-        }
-    }
-
-    public record WaypointInfo(UUID ownerUUID, int index, Waypoint waypoint) {
-    }
+    public record WaypointInfo(UUID ownerUUID, int index, Waypoint waypoint) {}
 }
-

@@ -1,48 +1,14 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.bukkit.Bukkit
- *  org.bukkit.NamespacedKey
- *  org.bukkit.command.CommandExecutor
- *  org.bukkit.command.PluginCommand
- *  org.bukkit.command.TabCompleter
- *  org.bukkit.event.Listener
- *  org.bukkit.plugin.Plugin
- *  org.bukkit.plugin.java.JavaPlugin
- */
 package com.nemonicorp.orbs;
 
-import com.nemonicorp.orbs.BlacksmithTableListener;
-import com.nemonicorp.orbs.ClassSelectionBookListener;
-import com.nemonicorp.orbs.CraftingBlockListener;
-import com.nemonicorp.orbs.EffectiveArmorService;
-import com.nemonicorp.orbs.ElementalEffectListener;
-import com.nemonicorp.orbs.GuerreiroDropListener;
-import com.nemonicorp.orbs.MerchantRouteManager;
-import com.nemonicorp.orbs.MerchantTableListener;
-import com.nemonicorp.orbs.MesaGuideManager;
-import com.nemonicorp.orbs.MobLootDropListener;
-import com.nemonicorp.orbs.ModifierAuditService;
-import com.nemonicorp.orbs.ModifierEngine;
-import com.nemonicorp.orbs.OrbCommand;
-import com.nemonicorp.orbs.OrbListener;
-import com.nemonicorp.orbs.PublicWarpManager;
-import com.nemonicorp.orbs.TransmutationTableListener;
-import com.nemonicorp.orbs.WelcomeBookListener;
-import java.io.File;
-import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class NemonicOrbPlugin
-extends JavaPlugin {
+import java.io.File;
+
+public final class NemonicOrbPlugin extends JavaPlugin {
+
     private static NemonicOrbPlugin instance;
     private ModifierEngine modifierEngine;
     private MerchantRouteManager routeManager;
@@ -52,122 +18,186 @@ extends JavaPlugin {
     private EffectiveArmorService effectiveArmorService;
     private PublicWarpManager publicWarpManager;
 
+    @Override
     public void onEnable() {
         instance = this;
-        this.migrateConfig();
-        this.saveResource("nemonicorp_orb_modifiers.yml", true);
-        this.modifierEngine = new ModifierEngine(this);
-        this.modifierEngine.load();
-        this.guideManager = new MesaGuideManager();
-        this.modifierAuditService = new ModifierAuditService(this);
-        this.effectiveArmorService = new EffectiveArmorService(this);
-        this.orbListener = new OrbListener(this);
-        this.getServer().getPluginManager().registerEvents((Listener)this.orbListener, (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)this.effectiveArmorService, (Plugin)this);
+        migrateConfig();
+
+        // Sempre extrair arquivo de modificadores (overwrite para garantir versao correta)
+        saveResource("nemonicorp_orb_modifiers.yml", true);
+
+        // Garante que as 9 orbs estao registradas no MMOItems (injeta se faltar).
+        new MMOItemsBootstrap(this).run();
+
+        modifierEngine = new ModifierEngine(this);
+        modifierEngine.load();
+
+        guideManager = new MesaGuideManager();
+        modifierAuditService = new ModifierAuditService(this);
+        effectiveArmorService = new EffectiveArmorService(this);
+
+        orbListener = new OrbListener(this);
+        getServer().getPluginManager().registerEvents(orbListener, this);
+        getServer().getPluginManager().registerEvents(effectiveArmorService, this);
+
         CraftingBlockListener craftingBlockListener = new CraftingBlockListener(this);
         TransmutationTableListener transmutationListener = new TransmutationTableListener(this);
         BlacksmithTableListener blacksmithListener = new BlacksmithTableListener(this);
         craftingBlockListener.setTransmutationListener(transmutationListener);
         craftingBlockListener.setBlacksmithListener(blacksmithListener);
-        this.getServer().getPluginManager().registerEvents((Listener)craftingBlockListener, (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)transmutationListener, (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)blacksmithListener, (Plugin)this);
-        this.routeManager = new MerchantRouteManager(this);
-        this.routeManager.load();
-        this.routeManager.startMaintenance();
-        this.getServer().getPluginManager().registerEvents((Listener)this.routeManager, (Plugin)this);
-        MerchantTableListener merchantListener = new MerchantTableListener(this, this.orbListener, this.routeManager);
+        getServer().getPluginManager().registerEvents(craftingBlockListener, this);
+        getServer().getPluginManager().registerEvents(transmutationListener, this);
+        getServer().getPluginManager().registerEvents(blacksmithListener, this);
+
+        routeManager = new MerchantRouteManager(this);
+        routeManager.load();
+        routeManager.startMaintenance();
+        getServer().getPluginManager().registerEvents(routeManager, this);
+
+        MerchantTableListener merchantListener = new MerchantTableListener(this, orbListener, routeManager);
         craftingBlockListener.setMerchantListener(merchantListener);
-        this.getServer().getPluginManager().registerEvents((Listener)merchantListener, (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)new ElementalEffectListener(this, this.orbListener), (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)new GuerreiroDropListener(this), (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)new MobLootDropListener(this, this.orbListener), (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)new WelcomeBookListener(this), (Plugin)this);
+        orbListener.setMerchantListener(merchantListener);
+        getServer().getPluginManager().registerEvents(merchantListener, this);
+
+        getServer().getPluginManager().registerEvents(new ElementalEffectListener(this, orbListener), this);
+        getServer().getPluginManager().registerEvents(new GuerreiroDropListener(this), this);
+        MobLootDropListener mobLootListener = new MobLootDropListener(this, orbListener);
+        mobLootListener.setMerchantListener(merchantListener);
+        getServer().getPluginManager().registerEvents(mobLootListener, this);
+        getServer().getPluginManager().registerEvents(new WelcomeBookListener(this), this);
         new ClassSelectionBookListener(this).registerIfAvailable();
-        this.publicWarpManager = new PublicWarpManager(this);
-        this.publicWarpManager.load();
-        this.getServer().getPluginManager().registerEvents((Listener)this.publicWarpManager, (Plugin)this);
-        PluginCommand cmd = this.getCommand("nemonicorb");
+
+        // Warps Publicas (#9)
+        publicWarpManager = new PublicWarpManager(this);
+        publicWarpManager.load();
+        getServer().getPluginManager().registerEvents(publicWarpManager, this);
+
+        PluginCommand cmd = getCommand("nemonicorb");
         if (cmd != null) {
             OrbCommand handler = new OrbCommand(this);
-            cmd.setExecutor((CommandExecutor)handler);
-            cmd.setTabCompleter((TabCompleter)handler);
+            cmd.setExecutor(handler);
+            cmd.setTabCompleter(handler);
         }
-        this.registerEdwardAdvancement();
-        this.registerCoracaoDeAcoAdvancement();
-        this.registerRotaDeOuroAdvancement();
-        this.getLogger().info("NemonicOrbPlugin v" + this.getDescription().getVersion() + " habilitado!");
-        List ids = this.getConfig().getStringList("orb-ids");
-        this.getLogger().info("Orbs v2 registrados: " + ids.size() + " -> " + String.valueOf(ids));
-        this.getLogger().info("Config version: " + this.getConfig().getInt("config-version", 0));
+
+        // Registrar conquistas
+        registerEdwardAdvancement();
+        registerCoracaoDeAcoAdvancement();
+        registerRotaDeOuroAdvancement();
+
+        getLogger().info("NemonicOrbPlugin v" + getDescription().getVersion() + " habilitado!");
+        var ids = getConfig().getStringList("orb-ids");
+        getLogger().info("Orbs v2 registrados: " + ids.size() + " -> " + ids);
+        getLogger().info("Config version: " + getConfig().getInt("config-version", 0));
     }
 
+    @SuppressWarnings("deprecation")
     private void registerEdwardAdvancement() {
-        NamespacedKey key = new NamespacedKey((Plugin)this, "edward");
-        if (Bukkit.getAdvancement((NamespacedKey)key) != null) {
-            return;
-        }
+        NamespacedKey key = new NamespacedKey(this, "edward");
+        if (Bukkit.getAdvancement(key) != null) return;
+
         try {
-            String json = "{\n    \"display\": {\n        \"icon\": {\"id\": \"minecraft:enchanting_table\"},\n        \"title\": {\"text\": \"Edward?\", \"color\": \"gold\"},\n        \"description\": {\"text\": \"Tem certeza disso?\"},\n        \"frame\": \"task\",\n        \"show_toast\": true,\n        \"announce_to_chat\": true\n    },\n    \"criteria\": {\n        \"crafted\": {\n            \"trigger\": \"minecraft:impossible\"\n        }\n    }\n}\n";
+            String json = """
+                    {
+                        "display": {
+                            "icon": {"id": "minecraft:enchanting_table"},
+                            "title": {"text": "Edward?", "color": "gold"},
+                            "description": {"text": "Tem certeza disso?"},
+                            "frame": "task",
+                            "show_toast": true,
+                            "announce_to_chat": true
+                        },
+                        "criteria": {
+                            "crafted": {
+                                "trigger": "minecraft:impossible"
+                            }
+                        }
+                    }
+                    """;
             Bukkit.getUnsafe().loadAdvancement(key, json);
-            this.getLogger().info("Conquista 'Edward?' registrada com sucesso!");
-        }
-        catch (Exception e) {
-            this.getLogger().warning("Erro ao registrar advancement Edward: " + e.getMessage());
+            getLogger().info("Conquista 'Edward?' registrada com sucesso!");
+        } catch (Exception e) {
+            getLogger().warning("Erro ao registrar advancement Edward: " + e.getMessage());
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void registerCoracaoDeAcoAdvancement() {
-        NamespacedKey key = new NamespacedKey((Plugin)this, "coracao_de_aco");
-        if (Bukkit.getAdvancement((NamespacedKey)key) != null) {
-            return;
-        }
+        NamespacedKey key = new NamespacedKey(this, "coracao_de_aco");
+        if (Bukkit.getAdvancement(key) != null) return;
+
         try {
-            String json = "{\n    \"display\": {\n        \"icon\": {\"id\": \"minecraft:anvil\"},\n        \"title\": {\"text\": \"Cora\u00e7\u00e3o de A\u00e7o\", \"color\": \"gold\"},\n        \"description\": {\"text\": \"Ferreiros... Ja ouvi falar deles...\"},\n        \"frame\": \"task\",\n        \"show_toast\": true,\n        \"announce_to_chat\": true\n    },\n    \"criteria\": {\n        \"crafted\": {\n            \"trigger\": \"minecraft:impossible\"\n        }\n    }\n}\n";
+            String json = """
+                    {
+                        "display": {
+                            "icon": {"id": "minecraft:anvil"},
+                            "title": {"text": "Coração de Aço", "color": "gold"},
+                            "description": {"text": "Ferreiros... Ja ouvi falar deles..."},
+                            "frame": "task",
+                            "show_toast": true,
+                            "announce_to_chat": true
+                        },
+                        "criteria": {
+                            "crafted": {
+                                "trigger": "minecraft:impossible"
+                            }
+                        }
+                    }
+                    """;
             Bukkit.getUnsafe().loadAdvancement(key, json);
-            this.getLogger().info("Conquista 'Coracao de Aco' registrada com sucesso!");
-        }
-        catch (Exception e) {
-            this.getLogger().warning("Erro ao registrar advancement Coracao de Aco: " + e.getMessage());
+            getLogger().info("Conquista 'Coracao de Aco' registrada com sucesso!");
+        } catch (Exception e) {
+            getLogger().warning("Erro ao registrar advancement Coracao de Aco: " + e.getMessage());
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void registerRotaDeOuroAdvancement() {
-        NamespacedKey key = new NamespacedKey((Plugin)this, "rota_de_ouro");
-        if (Bukkit.getAdvancement((NamespacedKey)key) != null) {
-            return;
-        }
+        NamespacedKey key = new NamespacedKey(this, "rota_de_ouro");
+        if (Bukkit.getAdvancement(key) != null) return;
+
         try {
-            String json = "{\n    \"display\": {\n        \"icon\": {\"id\": \"minecraft:cartography_table\"},\n        \"title\": {\"text\": \"Rota de Ouro\", \"color\": \"gold\"},\n        \"description\": {\"text\": \"Tudo tem um preco, isso me lembra alguem...\"},\n        \"frame\": \"task\",\n        \"show_toast\": true,\n        \"announce_to_chat\": true\n    },\n    \"criteria\": {\n        \"crafted\": {\n            \"trigger\": \"minecraft:impossible\"\n        }\n    }\n}\n";
+            String json = """
+                    {
+                        "display": {
+                            "icon": {"id": "minecraft:cartography_table"},
+                            "title": {"text": "Rota de Ouro", "color": "gold"},
+                            "description": {"text": "Tudo tem um preco, isso me lembra alguem..."},
+                            "frame": "task",
+                            "show_toast": true,
+                            "announce_to_chat": true
+                        },
+                        "criteria": {
+                            "crafted": {
+                                "trigger": "minecraft:impossible"
+                            }
+                        }
+                    }
+                    """;
             Bukkit.getUnsafe().loadAdvancement(key, json);
-            this.getLogger().info("Conquista 'Rota de Ouro' registrada com sucesso!");
-        }
-        catch (Exception e) {
-            this.getLogger().warning("Erro ao registrar advancement Rota de Ouro: " + e.getMessage());
+            getLogger().info("Conquista 'Rota de Ouro' registrada com sucesso!");
+        } catch (Exception e) {
+            getLogger().warning("Erro ao registrar advancement Rota de Ouro: " + e.getMessage());
         }
     }
 
     private void migrateConfig() {
-        this.saveDefaultConfig();
-        int ver = this.getConfig().getInt("config-version", 0);
+        saveDefaultConfig();
+        int ver = getConfig().getInt("config-version", 0);
         if (ver < 13) {
-            this.getLogger().warning("Config antiga detectada (v" + ver + "). Substituindo por config v13...");
-            File configFile = new File(this.getDataFolder(), "config.yml");
-            if (configFile.exists()) {
-                configFile.delete();
-            }
-            this.saveDefaultConfig();
-            this.reloadConfig();
-            this.getLogger().info("Config v13 instalada com sucesso!");
+            getLogger().warning("Config antiga detectada (v" + ver + "). Substituindo por config v13...");
+            File configFile = new File(getDataFolder(), "config.yml");
+            if (configFile.exists()) configFile.delete();
+            saveDefaultConfig();
+            reloadConfig();
+            getLogger().info("Config v13 instalada com sucesso!");
         }
     }
 
+    @Override
     public void onDisable() {
-        if (this.routeManager != null) {
-            this.routeManager.shutdown();
-        }
+        if (routeManager != null) routeManager.shutdown();
         instance = null;
-        this.getLogger().info("NemonicOrbPlugin desabilitado.");
+        getLogger().info("NemonicOrbPlugin desabilitado.");
     }
 
     public static NemonicOrbPlugin getInstance() {
@@ -175,27 +205,26 @@ extends JavaPlugin {
     }
 
     public ModifierEngine getModifierEngine() {
-        return this.modifierEngine;
+        return modifierEngine;
     }
 
     public MesaGuideManager getGuideManager() {
-        return this.guideManager;
+        return guideManager;
     }
 
     public OrbListener getOrbListener() {
-        return this.orbListener;
+        return orbListener;
     }
 
     public ModifierAuditService getModifierAuditService() {
-        return this.modifierAuditService;
+        return modifierAuditService;
     }
 
     public PublicWarpManager getPublicWarpManager() {
-        return this.publicWarpManager;
+        return publicWarpManager;
     }
 
     public EffectiveArmorService getEffectiveArmorService() {
-        return this.effectiveArmorService;
+        return effectiveArmorService;
     }
 }
-
