@@ -34,10 +34,12 @@ public class DpsCalculator {
                                    ModifierEngine engine) {
         if (tier < 1) return -1;
         if (!isWeapon(item, nbt)) {
-            NemonicOrbPlugin.getInstance().getLogger().info(
-                    "[DEBUG-DPH] isWeapon=false material=" + item.getType().name()
-                    + " hasType=" + nbt.hasType()
-                    + " mmoType=" + nbt.getString("MMOITEMS_ITEM_TYPE"));
+            if (NemonicOrbPlugin.getInstance().getConfig().getBoolean("debug-dph", false)) {
+                NemonicOrbPlugin.getInstance().getLogger().info(
+                        "[DEBUG-DPH] isWeapon=false material=" + item.getType().name()
+                        + " hasType=" + nbt.hasType()
+                        + " mmoType=" + nbt.getString("MMOITEMS_ITEM_TYPE"));
+            }
             return -1;
         }
 

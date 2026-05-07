@@ -1173,7 +1173,7 @@ public class OrbListener implements Listener {
 
         // DPH (apenas para armas tier >= 1)
         double dps = DpsCalculator.calculate(item, nbt, mods, tier, false, engine);
-        if (debug()) plugin.getLogger().info("[DEBUG-DPH] vanilla tier=" + tier
+        if (plugin.getConfig().getBoolean("debug-dph", false)) plugin.getLogger().info("[DEBUG-DPH] vanilla tier=" + tier
                 + " material=" + item.getType().name() + " dps=" + dps);
         if (dps >= 0) {
             lore.add(cc(""));
