@@ -1,9 +1,10 @@
 <div align="center">
 
-# ✦ NemonicOrbPlugin
+# ✦ OrbPlugin
+
 ### Sistema de Modificação de Itens para Minecraft Java
 
-[![Version](https://img.shields.io/badge/versão-v2.6.0-gold?style=for-the-badge&logo=minecraft&logoColor=white)](.)
+[![Version](https://img.shields.io/badge/versão-v2.6.1-gold?style=for-the-badge&logo=minecraft&logoColor=white)](.)
 [![Server](https://img.shields.io/badge/servidor-NemonicRP-purple?style=for-the-badge)](.)
 [![API](https://img.shields.io/badge/Paper%20%2F%20Spigot-1.21+-green?style=for-the-badge&logo=java)](.)
 [![Java](https://img.shields.io/badge/Java-21+-orange?style=for-the-badge&logo=openjdk)](.)
@@ -18,9 +19,9 @@
 
 ---
 
-## O que é o NemonicOrbPlugin?
+## O que é o OrbPlugin?
 
-O **NemonicOrbPlugin** é um sistema completo de progressão de equipamentos para servidores Minecraft Java de RPG. Ele adiciona uma camada de profundidade estratégica inspirada em *Path of Exile 2*, onde cada item pode ser evoluído, modificado e polido por meio de **Orbs consumíveis**.
+O **OrbPlugin** é um sistema completo de progressão de equipamentos para servidores Minecraft Java de RPG. Ele adiciona uma camada de profundidade estratégica inspirada em *Path of Exile 2*, onde cada item pode ser evoluído, modificado e polido por meio de **Orbs consumíveis**.
 
 Jogadores constroem builds únicas combinando modificadores de categorias distintas, gerenciando raridades e tomando decisões estratégicas sobre quando e como usar cada Orb — o mesmo loop viciante dos ARPGs modernos, dentro do Minecraft.
 
@@ -28,7 +29,7 @@ Jogadores constroem builds únicas combinando modificadores de categorias distin
 
 ## ✦ Destaques
 
-- **9 tipos de Orbs** com comportamentos distintos e regras claras
+- **10 tipos de Orbs** com comportamentos distintos e regras claras
 - **5 tipos de equipamento** suportados: Arma, Armadura, Acessório, Ferramenta e Escudo
 - **50+ modificadores únicos** distribuídos por categorias com pesos balanceados
 - **Sistema de Polimento** que amplifica stats em até +47% (com consequências permanentes)
@@ -41,7 +42,7 @@ Jogadores constroem builds únicas combinando modificadores de categorias distin
 
 ---
 
-## 🔮 As 9 Orbs
+## 🔮 As 10 Orbs
 
 | Orb | Função | Restrição |
 |---|---|---|
@@ -54,13 +55,14 @@ Jogadores constroem builds únicas combinando modificadores de categorias distin
 | ⚡ **Runa de Poder** | Adiciona 1 mod extra a um item Raro com slots disponíveis | Apenas Tier 2 com < 6 mods |
 | 🎲 **Moeda da Sorte** | 75% Mágico · 23% Raro · 2% **Único** (mods 50% mais fortes) | Apenas Tier 0 |
 | 🧪 **Pedra Corrosiva** | Remove 1 mod **aleatório** do item | Não funciona em itens polidos |
+| ☠️ **Orb de Corrupção** | **Roleta terminal.** Destrói o item (7% em Raro · 5% em Único) ou sorteia entre Sem Mudança / Reroll Caótico / Mod Corrompido / Ultrapassar Limites | Apenas Raros e Únicos. O item corrompido **nunca mais** pode ser modificado |
 
 ---
 
 ## 🏆 Sistema de Raridades (Tiers)
 
 ```
-Tier 0 — Comum   [cinza]   0 mods  · item base
+Tier 0 — Comum   [cinza]   0 mods · item base
 Tier 1 — Mágico  [azul]    até 2 mods
 Tier 2 — Raro    [amarelo] até 6 mods
 Tier 3 — Único   [dourado] mods fixos com +50% de poder · só via Moeda da Sorte (2%)
@@ -70,7 +72,7 @@ Tier 3 — Único   [dourado] mods fixos com +50% de poder · só via Moeda da S
 
 ```
 SEGURA    Comum ─[Pedra de Encantamento]→ Mágico ─[Runa Nobre]→ Raro
-RÁPIDA    Comum ─[Pedra de Refinamento]─────────────────────→ Raro
+RÁPIDA    Comum ─[Pedra de Refinamento]───────────────────────→ Raro
 DA SORTE  Comum ─[Moeda da Sorte]→ Mágico / Raro / ✦ Único ✦
 ```
 
@@ -153,7 +155,7 @@ Itens craftados na bancada saem automaticamente com Tier 0, nível registrado, e
 ```
 72% Comum · 22% Mágico · 6% Raro
 ```
-Mercadores têm multiplicador de drop de equipamentos e pergaminhos. Alquimistas têm chance de Pedra Corrosiva. Item-level do drop calculado com variação aleatória.
+Mercadores têm multiplicador de drop de equipamentos e pergaminhos. Alquimistas têm chance de Pedra Corrosiva. A **Orb de Corrupção** dropa para todas as classes (0,8% · 1,1% para o Guerreiro). Item-level do drop calculado com variação aleatória.
 
 ---
 
@@ -164,7 +166,7 @@ Mercadores têm multiplicador de drop de equipamentos e pergaminhos. Alquimistas
 | [O Que São Orbs?](../../wiki/O-Que-Sao-Orbs) | Conceitos fundamentais |
 | [Como Usar uma Orb](../../wiki/Como-Usar-uma-Orb) | Passo a passo, cooldown, feedback |
 | [Raridades e Tiers](../../wiki/Raridades-e-Tiers) | Os 4 Tiers e as 3 rotas de evolução |
-| [Guia das 9 Orbs](../../wiki/Guia-das-9-Orbs) | Funcionamento detalhado de cada Orb |
+| [Guia das Orbs](../../wiki/Guia-das-9-Orbs) | Funcionamento detalhado de cada Orb |
 | [Modificadores e Categorias](../../wiki/Modificadores-e-Categorias) | Todos os mods por tipo de item |
 | [Sistema de Polimento](../../wiki/Sistema-de-Polimento) | Ganho acumulado e estratégia |
 | [Identificação de Itens](../../wiki/Identificacao-de-Itens) | Pergaminho, auto-identificação, drops |
@@ -213,6 +215,8 @@ Para o plugin **funcionar no servidor**, instale na pasta `plugins/`:
 4. Inicie o servidor uma vez para gerar `plugins/NemonicOrbPlugin/config.yml` e `nemonicorp_orb_modifiers.yml`.
 5. Edite os YAMLs conforme desejar e rode `/norb reload` (ou reinicie).
 
+> ℹ️ O nome do arquivo `.jar`, a pasta de configuração e o comando `/norb` mantêm os identificadores internos originais por compatibilidade com servidores já em produção.
+
 ---
 
 ## 🛠️ Como Compilar a partir do Código-Fonte
@@ -231,7 +235,7 @@ O JAR final fica em `target/NemonicOrbPlugin.jar`.
 ```
 NemonicORB/
 ├── pom.xml                                # configuração Maven + dependências
-├── src/main/java/com/nemonicorp/orbs/    # código-fonte (.java)
+├── src/main/java/com/nemonicorp/orbs/     # código-fonte (.java)
 └── src/main/resources/                    # config.yml, plugin.yml, modifiers
 ```
 
